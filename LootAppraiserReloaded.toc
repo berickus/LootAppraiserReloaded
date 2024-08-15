@@ -8,6 +8,7 @@
 ## X-Embeds: Ace3, LibDataBroker-1.1, LibDBIcon-1.0, LibExtraTip, LibParse
 ## IconTexture: Interface\AddOns\LootAppraiser\Media\icon.blp
 ## X-Curse-Project-ID: 1084464
+## X-Wago-ID: Q6aEwg6W
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml

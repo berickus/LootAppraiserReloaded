@@ -1,0 +1,51 @@
+<Ui xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="NoteworthyUI.lua" />
+	<Frame name="NoteworthyUI" inherits="BackdropTemplate" mixin="BackdropTemplateMixin" hidden="true" parent="UIParent" toplevel="true" movable="true">
+		<Size>
+			<AbsDimension x="287" y="286" />
+		</Size>
+		<Anchors>
+			<Anchor point="TOPLEFT">
+				<Offset>
+					<AbsDimension x="100" y="-150" />
+				</Offset>
+			</Anchor>
+		</Anchors>
+
+		<Layers>
+			<Layer level="OVERLAY">
+				<FontString name="FontStringTitle" inherits="GameFontNormal" text="Noteworthy Items Looted">
+					<Size x="227" y="20" />
+					<Anchors>
+						<Anchor point="TOPLEFT" x="19" y="-14" />
+					</Anchors>
+				</FontString>
+			</Layer>
+		</Layers>
+		<Frames>
+			<Button name="btnNWIClose" inherits="UIPanelButtonTemplate" text="x">
+				<Size x="30" y="23" />
+				<Anchors>
+					<Anchor point="TOPLEFT" x="240" y="-10" />
+				</Anchors>
+				<Scripts>
+					<OnClick>
+						btnNWIClose_OnClick()
+					</OnClick>
+				</Scripts>
+			</Button>
+		</Frames>
+		<Scripts>
+			<OnLoad inherit="prepend">
+				NoteworthyUI_OnLoad()
+				self:RegisterForDrag("LeftButton");
+			</OnLoad>
+			<OnDragStop>
+				self:StopMovingOrSizing();
+			</OnDragStop>
+			<OnDragStart>
+				self:StartMoving();
+			</OnDragStart>
+		</Scripts>
+	</Frame>
+</Ui>

@@ -1,0 +1,35 @@
+name: Package and release
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - main
+    tags:
+    - '*'
+
+    paths-ignore:
+    - ".github/**"
+
+jobs:
+  release:
+    strategy:
+      matrix:
+        type: [retail]
+        include:
+          - type: retail
+            pkgmeta: .pkgmeta
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - uses: BigWigsMods/packager@master
+      with:
+        args: -g ${{matrix.type}} -m ${{matrix.pkgmeta}}
+      env:
+        CF_API_KEY: ${{ secrets.CF_API_KEY }}
+        GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}

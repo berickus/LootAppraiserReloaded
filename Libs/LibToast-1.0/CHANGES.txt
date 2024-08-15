@@ -1,0 +1,354 @@
+commit 238be48a24c3987f2e2c9ece34ee02435e5541bd
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Oct 25 23:36:57 2020 -0500
+
+    Use BackdropTemplateMixin for the toast.
+
+commit 86b80474caeeb45abf892ba184947c79b7030fcf
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Oct 25 23:04:15 2020 -0500
+
+    Update ToC Interface for the WoW 9.0.1 version.
+
+commit 87a4723f95b66249c35023cb5b62346643a22752
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 19 01:59:13 2016 -0500
+
+    Added tag 7.0.3.2 for changeset d440e435def7
+
+commit 82952d3f63954acfe54abca5bebbda813c40acb4
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 19 01:58:52 2016 -0500
+
+    Bump ToC Interface version.
+
+commit cb08cb9e70c78f8c3ed09fc3310cf64d7da7fe4d
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 19 01:46:43 2016 -0500
+
+    Added tag 7.0.3.1 for changeset a7ac647a62e8
+
+commit 2850ba5fa0fe657473dfe9d1c84275e4076b2902
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jul 16 23:13:09 2016 -0500
+
+    Use SetFromAlpha and SetToAlpha since SetChange is removed in Legion. Bump to MINOR version.
+
+commit 763e0f579cd68232b35463d37b3cab9472f3bcad
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Thu May 12 22:35:04 2016 -0500
+
+    Template fix.
+
+commit 3403068557771901a3fd12a8dab45dfaff2c10ef
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Aug 8 23:24:00 2015 -0500
+
+    Add nil sentries for queued toast spawns.
+
+commit ec8a59bb6b0b18792f1e483ce44d2a070cc79381
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Aug 8 23:15:33 2015 -0500
+
+    Renames for stylistic and clarification purposes.
+
+commit 59d7f1d2178296ece3c4aa4f359f0f779e0371c1
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Aug 8 12:24:38 2015 -0500
+
+    Added tag 6.2.0.3 for changeset ecd323b5d12f
+
+commit adbccbb3ea775d15f670193a52fd0205b598dd9a
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Aug 8 12:24:24 2015 -0500
+
+    Toasts spawned while there are 10 active toasts will now be queued to spawn as the actives expire.
+
+commit 84f0425ff3c5cb8d691dd34e0ac6f931b9701d9e
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Thu Aug 6 18:43:38 2015 -0500
+
+    Added tag 6.2.0.2 for changeset 1131b0d4847b
+
+commit 1f911c1eac330b9f42c0c16e0a8bed13b6eaca29
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Thu Aug 6 18:43:16 2015 -0500
+
+    Allow Toaster to specify Duration, Opacity, Floating Icon, and Icon Size for individual toasts based on their source AddOn.
+
+commit 3705f5c0b01578a0371904593af11e741c8df3fc
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jun 23 21:03:43 2015 -0500
+
+    Added tag 6.2.0.1 for changeset 49d411b8238b
+
+commit 1f1f06e7af1473614ae89a64dfe1cd95e40fcd99
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jun 23 21:03:37 2015 -0500
+
+    Update ToC Interface to 60200.
+
+commit d88cacd2ce2e8289b047f2e29e1f9125e850e2f3
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Mon Mar 2 01:53:05 2015 -0600
+
+    Added tag 6.1.0.2 for changeset 72934a0f6d67
+
+commit 94ba1d469ad77f47faa59b2fa23555fb319ecd17
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Mon Mar 2 01:52:54 2015 -0600
+
+    Added support for the "icon" parameter to LibSink-2.0's Pour() method. Note: The r, g, b, font, size, outline, sticky, and location parameters are still unsupported but must be passed since they are required by LibSink-2.0.
+
+commit 74952dcc599c1f7bb84eaf89a8cb9b3adb81b998
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Feb 24 19:38:58 2015 -0600
+
+    Added tag 6.1.0.1 for changeset a008981d7d04
+
+commit 64c958d5a90a5e593267873f1ae75eee970f25ad
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Feb 24 19:38:47 2015 -0600
+
+    Updated ToC Interface to 60100
+
+commit e4fb690bfdbfeeadc920b1d0a47de8dcc9e8de7d
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Nov 23 03:19:13 2014 -0600
+
+    Added tag 6.0.3.3 for changeset e387f4254fb9
+
+commit bf71d8a24447cf44494c30e83c934ca207c50de1
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Nov 23 03:19:02 2014 -0600
+
+    Replaced usage of the UIFrameFade system with the Animation system. Toasts will also now flash on spawn and not fade while being moused over.
+
+commit 33881b6fb1c06149872677f15820848d67ff3299
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Nov 22 21:14:31 2014 -0600
+
+    Added tag 6.0.3.2 for changeset f729f438bcbf
+
+commit e4090408220c9171251be3de2424009bbd638de8
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Nov 22 21:14:04 2014 -0600
+
+    Added support for user-defined spawn points when using Toaster.
+
+commit b6f4d591a0e4b8a9cd5d278f4468a540314a333c
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Nov 21 18:35:41 2014 -0600
+
+    Cleanup.
+
+commit 437ba1fe9a929276a9acf120cf44ac196a69996a
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Nov 21 01:05:55 2014 -0600
+
+    Added tag 6.0.3.1 for changeset c7398e6d141f
+
+commit 965622f06ad03c13b28bdb85f51667eb2087435f
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Nov 21 01:05:24 2014 -0600
+
+    Fixed erroneous setting of addon_names for the calling object to the LibSink toast's display_name - now actually use the addon_name. Fixes issue where Toaster would, for example, show "Rare seen!" under AddOns instead of SilverDragon. Bumped MINOR to 9.
+
+commit 04f15c96c113a90573d70b690684db1cebf835ff
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Oct 14 21:52:05 2014 -0500
+
+    Added tag 6.0.2.1 for changeset b4ca24897079
+
+commit 9484289798bd280227c0d0479e31821892d38911
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Oct 14 21:51:40 2014 -0500
+
+    Added :SetIconAtlas() and bumped MINOR to 8.
+
+commit 924f2dc40429329b9e59ca04aff2982c27e71b97
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Oct 14 21:44:03 2014 -0500
+
+    Updated ToC Interface to 60000.
+
+commit 3cea68535e41aee468040e8e38c44de5531b7a30
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Oct 12 04:50:31 2014 -0500
+
+    Set default spawn point to TOPRIGHT if IsMacClient() is true.
+
+commit 2dbcb8cab8dceea479167043d539ce6ba62c0e0b
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Oct 12 04:08:54 2014 -0500
+
+    Changed backdrop bgFile from CHATFRAMEBACKGROUND to UI-Toast-Background
+
+commit be9b5a72896e9b5aeb63f35a62dc67d8f9739b65
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Wed Jun 12 22:29:30 2013 -0500
+
+    Added tag r27-release for changeset 71437f934f89
+
+commit efa3fcafea12f3632f909899886d340d6cb00915
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Wed Jun 12 22:29:07 2013 -0500
+
+    Bump ToC version to 50300.
+
+commit 473ee5f7fa4e580cce2af2313bc28c3b2d63d966
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Mar 5 05:16:01 2013 -0600
+
+    Added tag r25-release for changeset e7c32e0729f9
+
+commit cfb8abee7539fc1006b41ad17b0597be1d4af4da
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Mar 5 05:15:27 2013 -0600
+
+    Update ToC Interface version to 50200.
+
+commit 785164ab254d0e07530778e9ff3b0d1371fe28ff
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Sep 14 14:13:22 2012 -0500
+
+    Added tag r21-release for changeset 4739967426c8
+
+commit b846f8c1a2ff134a7493776f5180a34ce29b92e9
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Sep 14 14:12:46 2012 -0500
+
+    To provide greater flexibility, allow display_name and texture_path for :DefineSinkToast() to be a function that returns a string.
+
+commit 66ca6a1639b3fecc059b80dede7467edfaea76a7
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Sep 14 13:05:35 2012 -0500
+
+    Added tag r20-release for changeset 9900a86ed81c
+
+commit 64bf11bd199a6a6090bdfc0c065f18e68c977b00
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Sep 14 13:04:32 2012 -0500
+
+    Added the ability to embed the library in an AddOn object. Added :DefineSink() (or :DefineSinkToast() when embedding) - allows for using LibSink:Pour() on toast objects.
+
+commit e2f0901a45eee5b60a6d494340505a378dab2787
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Sep 14 13:00:09 2012 -0500
+
+    Since the OSX WoW Launcher insists on changing permissions and I'm tired of fighting with it…
+
+commit e64deec5e7f0e8868ac601ca1fc80a3a51e249c6
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Aug 28 19:03:07 2012 -0500
+
+    Added tag r18-release for changeset 7176a49c2d62
+
+commit 6c36a2f86fecc680b19fac0400f35a052eb86d07
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Aug 28 19:02:46 2012 -0500
+
+    Bumped ToC to 50001.
+
+commit 0819f400e236da7b23de0517a0dc7d71c42b63ba
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sun Jul 29 13:09:47 2012 -0500
+
+    Added tag r16-release for changeset 934b981cf50e
+
+commit 5ee81d8febdcbc9355ff8e6a3b48f1f857246438
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 24 23:27:40 2012 -0500
+
+    Added toast:SetIconTexCoord()
+
+commit 6bb1db492bf7689a315091dd8365d7dbe6615b67
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Mon Jul 23 20:41:59 2012 -0500
+
+    Added tag r13-release for changeset d0203688872d
+
+commit fdac2d84cc497ff41665a77ad8d1f64dd9f227e2
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Mon Jul 23 20:41:31 2012 -0500
+
+    Added calling-AddOn recognition, the toast:SetSoundFile() API, and hooks into Toaster to hide/mute individual AddOn toasts or mute all AddOn toasts.
+
+commit f310a9a988b27748e26b88216f2eed12a5252fe9
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 04:36:56 2012 -0500
+
+    Added tag r11-release for changeset 9dc8b1bcab1b
+
+commit ee378e1d163a9f9c230853cc30e65b5e80a087ea
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 04:36:39 2012 -0500
+
+    Damn you, library MINOR version!
+
+commit 729b35ce05bb2dfd6db27f29bf2d4cdfcaab50e3
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 04:35:47 2012 -0500
+
+    Added tag r9-release for changeset 8c27ae144a90
+
+commit 0481b87aea8edfd0f1d77a2f634328f851b99a14
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 04:35:32 2012 -0500
+
+    Consolidated duplicated code for icon anchoring for consistency in layout (icons were jumping to the left when fading out).
+
+commit c4be4665916ce8d2bbbe1cb9e2d8c3e31f2ffe4e
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 02:08:13 2012 -0500
+
+    Added tag r7-release for changeset bfef0f81adee
+
+commit 656a02be86de781e7a263abb5c87003daa7d723e
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jun 30 02:04:31 2012 -0500
+
+    Improved spacing between the right border and the toast icon. Added support for icon-sizing via Toaster.
+
+commit f9f9f97a8839f90fb849ea28e400f265c0d978a0
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Fri Feb 24 23:35:33 2012 -0600
+
+    Updated ToC version to 40300.
+
+commit 68ba7e6705d95cea3f6517e874e813af8c612e12
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Thu Jul 14 15:33:19 2011 -0500
+
+    Added tag r5-release for changeset 8957546f7773
+
+commit fab246b8c87272d7d6665b87d46cb4cf17c349e2
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Thu Jul 14 15:30:24 2011 -0500
+
+    License change.
+
+commit 189eab46c1d3e67179ed964c55577d0b26f106a1
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Wed Jul 13 16:47:12 2011 -0500
+
+    Added contents to .pkgmeta
+
+commit ff66cecf634dd68786694656cd9557ff7ec8784d
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 12 19:57:24 2011 -0500
+
+    Typo fix.
+
+commit 1daabd428382923b96a553e56dee29891f1b38ca
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Tue Jul 12 19:12:18 2011 -0500
+
+    Moved default Toast anchor point to the bottom-right of the screen.
+
+commit f710852259c5f4f54c4082598dd98c9ddb36ed9a
+Author: James D. Callahan III <darkenelf@gmail.com>
+Date:   Sat Jul 9 01:23:57 2011 -0500
+
+    Initial commit.
+

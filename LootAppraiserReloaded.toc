@@ -2,11 +2,11 @@
 ## Title: LootAppraiser Reloaded
 ## Notes: An addon which keeps track of looted items and relative AH value.
 ## Author: Berickus
-## Version: v2.2.5
+## Version: @project-version@
 ## OptionalDeps: TradeSkillMaster, OribosExchange, Auctionator
-## SavedVariables: LootAppraiserDB, LALootDB
+## SavedVariables: LootAppraiserReloadedDB, LALootDB
 ## X-Embeds: Ace3, LibDataBroker-1.1, LibDBIcon-1.0, LibExtraTip, LibParse
-## IconTexture: Interface\AddOns\LootAppraiser\Media\icon.blp
+## IconTexture: Interface\AddOns\LootAppraiserReloaded\Media\icon.blp
 ## X-Curse-Project-ID: 1084464
 ## X-Wago-ID: Q6aEwg6W
 
@@ -28,8 +28,8 @@ Libs\AceDB-3.0\AceDB-3.0.xml
 
 Libs\LibParse\load.xml
 
-Core\UI\widget\LootAppraiserGUIContainer-LiteWindow.lua
-Core\UI\widget\LootAppraiserGUIWidget-Label.lua
+Core\UI\widget\LootAppraiserReloadedGUIContainer-LiteWindow.lua
+Core\UI\widget\LootAppraiserReloadedGUIWidget-Label.lua
 
 Core\Const.lua
 Core\PetData.lua
@@ -41,8 +41,8 @@ Core\UI\UI.lua
 Core\UI\NoteworthyUI.lua
 Core\UI\NoteworthyUI.xml
 
-LootAppraiser.lua
-LootAppraiser_TSM.lua
+LootAppraiserReloaded.lua
+LootAppraiserReloaded_TSM.lua
 
 #Ext\SalvageCrate.lua
 

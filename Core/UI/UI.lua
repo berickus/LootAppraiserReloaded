@@ -33,7 +33,7 @@ pairs, tostring, string, time, table, select, date, sort, floor, table.insert
 
 
 -- define toast template
-LibToast:Register("LootAppraiser",
+LibToast:Register("LootAppraiserReloaded",
     function(toast, text, iconTexture, qualityID, amountGained, itemValue, source)
         local _, _, _, hex = GetItemQualityColor(qualityID)
 
@@ -217,7 +217,7 @@ function UI.ShowMainWindow(showMainUI)
     if private.MAIN_UI and showMainUI then
         private.MAIN_UI:Show()				
 
-        if LA.GetFromDb("display", "enableLootAppraiserLite") then
+        if LA.GetFromDb("display", "enableLootAppraiserReloadedLite") then
             LA.UI.ShowLiteWindow()
         end
 
@@ -225,7 +225,7 @@ function UI.ShowMainWindow(showMainUI)
             LA.UI.ShowLastNoteworthyItemWindow()
         end
 
-        if LA.GetFromDb("display", "enableLootAppraiserTimerUI") then
+        if LA.GetFromDb("display", "enableLootAppraiserReloadedTimerUI") then
             LA.UI.ShowTimerWindow()
         end
 		
@@ -392,7 +392,7 @@ function UI.ShowMainWindow(showMainUI)
         function()
             -- prepare tooltip
             GameTooltip:ClearLines()
-            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiser.GUI is the AceGUI-Frame but we need the real frame
+            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
             GameTooltip:AddLine("New Session")
             GameTooltip:AddLine("|cffffffffHold 'shift' and click the|r")
             GameTooltip:AddLine("|cffffffffbutton to start a new session|r")
@@ -462,7 +462,7 @@ function UI.ShowMainWindow(showMainUI)
 
                 -- prepare tooltip
                 GameTooltip:ClearLines()
-                GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiser.GUI is the AceGUI-Frame but we need the real frame
+                GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
 
                 GameTooltip:AddLine("Instance lockouts")
                 if LA.Util.tablelength(private.resetInfo) > 0 then
@@ -502,7 +502,7 @@ function UI.ShowMainWindow(showMainUI)
     if showMainUI then
         private.MAIN_UI:Show()
 
-        if LA.GetFromDb("display", "enableLootAppraiserLite") then
+        if LA.GetFromDb("display", "enableLootAppraiserReloadedLite") then
             LA.UI.ShowLiteWindow()
         end
 
@@ -510,7 +510,7 @@ function UI.ShowMainWindow(showMainUI)
             LA.UI.ShowLastNoteworthyItemWindow()
         end
 
-        if LA.GetFromDb("display", "enableLootAppraiserTimerUI") then
+        if LA.GetFromDb("display", "enableLootAppraiserReloadedTimerUI") then
             LA.UI.ShowTimerWindow()
         end
     end
@@ -782,7 +782,7 @@ function UI.RefreshUIs()
 	
 	
 	--[[
-    if LA.GetFromDb("display", "enableLootAppraiserLite") then
+    if LA.GetFromDb("display", "enableLootAppraiserReloadedLite") then
         if private.LITE_UI then
             local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
             private.LITE_UI:SetTitle(LA.Util.MoneyToString(totalItemValue))
@@ -899,7 +899,7 @@ function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue, notew
     LABEL:SetWidth(350)
     LABEL:SetCallback("OnEnter",
         function()
-            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiser.GUI is the AceGUI-Frame but we need the real frame
+            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")  -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
             GameTooltip:SetHyperlink(link)
             GameTooltip:Show()
         end
@@ -1166,7 +1166,7 @@ function private.GetItemValue(itemID, priceSource)
 		elseif priceSource == "Auctionator" then
 			local priceInfo = {}
 			--Usage Auctionator.API.v1.GetAuctionPriceByItemID(string, number)
-			AuctionatorInfo = Auctionator.API.v1.GetAuctionPriceByItemID("LootAppraiser", itemID)
+			AuctionatorInfo = Auctionator.API.v1.GetAuctionPriceByItemID("LootAppraiserReloaded", itemID)
 			return AuctionatorInfo
 
 		else

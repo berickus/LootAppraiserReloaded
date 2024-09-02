@@ -73,11 +73,11 @@ local generalOptionsGroup =  {
 --New toggle for auto-starting LA upon first loot (11.21.2020)
 --------------------------------------------------------------------------		
         autoStartLA = {
-            type = "toggle", order = 55, name = "Auto-start without prompting",  desc = "Enabling this will auto-start LootAppraiser instead of prompting upon first loot.", width = "double",
+            type = "toggle", order = 55, name = "Auto-start without prompting",  desc = "Enabling this will auto-start LootAppraiser Reloaded instead of prompting upon first loot.", width = "double",
             set = function (info, value)
                 local oldValue = LA.db.profile.general[info[#info]]
                 if oldValue ~= value then
-                    LA:Print("Auto-start LootAppraiser: " .. Config.FormatBoolean(value) .. ".")
+                    LA:Print("Auto-start LootAppraiser Reloaded: " .. Config.FormatBoolean(value) .. ".")
                 end
                 LA.db.profile.general[info[#info]] = value;
             end,
@@ -220,20 +220,6 @@ local generalOptionsGroup =  {
                 LA.db.profile.general[info[#info]] = value;
             end, 
         },
-
-
-
-		supportGuildedHeader = { order = 95, type = "header", name = "Suggestions and Support", },
-		
-		guildedSupportSection = {
-		type = "input", order = 96, name = "LootAppraiser Guilded:", desc = "Join the official LootAppraiser Guilded server to send in suggestions and get support.", width = "full", 
-			get = function(info)
-				return LA.CONST.LAGUILDED
-			end,
-			set = function(info, value)
-				value = info
-            end,
-		},
     },
 }
 
@@ -333,7 +319,7 @@ local tsmGroupsGroup =  {
                     end,
                 },
                 tsmGroupEnabled = {
-                    type = "toggle", order = 30, name = " Blacklist via TSM group", desc = "Use a TSM group to define blacklisted items. If deactivated LootAppraiser uses the old unmaintained list.", width = "full",
+                    type = "toggle", order = 30, name = " Blacklist via TSM group", desc = "Use a TSM group to define blacklisted items. If deactivated LootAppraiser Reloaded uses the old unmaintained list.", width = "full",
                     set = function(info, value)
                         local oldValue = LA.db.profile.blacklist[info[#info]]
                         if oldValue ~= value then LA:Print("Blacklist items via TSM group: " .. Config.FormatBoolean(value) .. ".") end
@@ -381,7 +367,7 @@ local tsmGroupsGroup =  {
 local options = {
     type = "group",
     args = {
-        general = { type = "group", name = "LootAppraiser " .. LA.CONST.METADATA.VERSION, childGroups = "tab",
+        general = { type = "group", name = "LootAppraiser Reloaded " .. LA.CONST.METADATA.VERSION, childGroups = "tab",
             get = function(info) return LA.db.profile[info[#info]] end,
             set = function(info, value)
                 LA.db.profile[info[#info]] = value;
@@ -621,11 +607,11 @@ local options = {
                             },
                             plugins = {},
                         },
-                        displayLastNoteworthyItemOptions = { type = "group", order = 20, name = "Additional LootAppraiser 'Lite' windows", hidden = false, inline = true,
+                        displayLastNoteworthyItemOptions = { type = "group", order = 20, name = "Additional LootAppraiser Reloaded 'Lite' windows", hidden = false, inline = true,
                             args = {
                                 enableLastNoteworthyItemUI = { type = "toggle", order = 10, name = "Enable 'Last Noteworthy Item' UI", desc = "Enables the 'Last Noteworthy Item' UI", width = "double", },
-                                enableLootAppraiserLite = { type = "toggle", order = 10, name = "Enable 'LootAppraiser Lite' UI", desc = "Enables the 'LootAppraiser Lite' UI which shows the looted item value.", width = "double", },
-                                enableLootAppraiserTimerUI = { type = "toggle", order = 10, name = "Enable 'Timer' UI", desc = "Enables the 'Timer' UI.", width = "double", set = function(info, value) LA.db.profile.display[info[#info]] = value end, },
+                                enableLootAppraiserReloadedLite = { type = "toggle", order = 10, name = "Enable 'LootAppraiser Reloaded Lite' UI", desc = "Enables the 'LootAppraiser Reloaded Lite' UI which shows the looted item value.", width = "double", },
+                                enableLootAppraiserReloadedTimerUI = { type = "toggle", order = 10, name = "Enable 'Timer' UI", desc = "Enables the 'Timer' UI.", width = "double", set = function(info, value) LA.db.profile.display[info[#info]] = value end, },
                             },
                             plugins = {},
                         },
@@ -669,32 +655,26 @@ local options = {
                 -----------------------------------------
                 aboutGroup = { type = "group", order = 100, name = "About",
                     args = {
-                        generalText = { type = "description", order = 10, fontSize = "medium",name = "LootAppraiser is an addon which determines an item's value when looted based upon a pricing source you select. It keeps track of all gold asset value of the items in total including a quality item filter. Perfect for farming and determining gold asset value or potential gold-per-hour.\n\nThe reason Profitz developed this addon was because while proving out some gold earnings via farming, he was using spreadsheets for post-run calculations on item values and pricing models. Now, we all can just run this addon, select the price source we want and let it calculate it for us!\n\nPlease understand, this addon does NOT determine liquid gold you are guaranteed to make but rather, potential ‘asset’ values (looted item value) of items looted where you will have to do the work and sell it on the Auction House, trade chat, etc.\n",width = "full", },
-						contactDetailsHeader = { order = 11, type = "header", name = "Contact Details", },
-                        generalText20 = { type = "description", order = 20, fontSize = "medium", name = "\nCreator/Author/Developer: ProfitzTV", width = "full", },
-                        blank26 = { type = "description", order = 26, fontSize = "small", name = "", width = "full", },
-                        generalText30 = { type = "description", order = 30, fontSize = "medium", name = "Twitter:", width = "half", },
-                        generalText35 = { type = "description", order = 35, fontSize = "medium", name = "ProfitzTV (https://www.twitter.com/ProfitzTV)", width = "double", },
-                        blank36 = { type = "description", order = 36, fontSize = "small", name = "", width = "full", },
-                        generalText40 = { type = "description", order = 40, fontSize = "medium", name = "Twitch:", width = "half", },
-                        generalText45 = { type = "description", order = 45, fontSize = "medium", name = "ProfitzTV (https://www.twitch.tv/ProfitzTV)", width = "double", },
-                        blank46 = { type = "description", order = 46, fontSize = "small", name = "", width = "full", },
-                        generalText47 = { type = "description", order = 47, fontSize = "medium", name = "YouTube:", width = "half", },
-                        generalText48 = { type = "description", order = 48, fontSize = "medium", name = "ProfitzTV (https://www.youtube.com/ProfitzTV)", width = "double", },
-						blank47 = { type = "description", order = 49, fontSize = "small", name = "", width = "full", },
-						generalText49 = { type = "description", order = 50, fontSize = "medium", name = "Guilded:", width = "half", },
-                        generalText50 = { type = "description", order = 51, fontSize = "medium", name = LA.CONST.LAGUILDED, width = "double", },
-                        blank49 = { type = "description", order = 52, fontSize = "small", name = "", width = "full", },
-						--generalText51 = { type = "description", order = 53, fontSize = "medium", name = "Email:", width = "half", },
-                        --generalText55 = { type = "description", order = 55, fontSize = "medium", name = "WowProfitz@gmail.com", width = "double", },
-                        generalText60 = { type = "description", order = 60, fontSize = "medium", name = "\nFormer Co-Author/Developer:  Testerle", width = "full", },
-                        blank66 = { type = "description", order = 66, fontSize = "small",name = "",width = "full", },
-                        --generalText70 = { type = "description", order = 70, fontSize = "medium", name = "Twitter:", width = "half", },
-                        --generalText75 = { type = "description", order = 75, fontSize = "medium", name = "@Testerle (https://twitter.com/Testerle)", width = "double", },
-                        --blank76 = { type = "description", order = 76, fontSize = "small", name = "", width = "full", },
-                        --generalText77 = { type = "description", order = 77, fontSize = "medium", name = "Twitch:", width = "half", },
-                        --generalText78 = { type = "description", order = 78, fontSize = "medium", name = "Testerle (http://www.twitch.tv/testerle)", width = "double", },
-                        --blank79 = { type = "description", order = 79, fontSize = "small",name = "",width = "full", },
+                        generalText = { type = "description", order = 1, fontSize = "medium",name = "LootAppraiser Reloaded is an addon which determines an item's value when looted based upon a pricing source you select. It keeps track of all gold asset value of the items in total including a quality item filter. Perfect for farming and determining gold asset value or potential gold-per-hour.\n\nThe reason Profitz developed this addon was because while proving out some gold earnings via farming, he was using spreadsheets for post-run calculations on item values and pricing models. Now, we all can just run this addon, select the price source we want and let it calculate it for us!\n\nPlease understand, this addon does NOT determine liquid gold you are guaranteed to make but rather, potential ‘asset’ values (looted item value) of items looted where you will have to do the work and sell it on the Auction House, trade chat, etc.\n",width = "full", },
+						contactDetailsHeader = { order = 2, type = "header", name = "Contact Details", },
+                        generalText10 = { type = "description", order = 10, fontSize = "medium", name = "\nDeveloper: Berick", width = "full", },
+                        blank11 = { type = "description", order = 10, fontSize = "small", name = "", width = "full", },
+                        generalText20 = { type = "description", order = 20, fontSize = "medium", name = "Patreon:", width = "half", },
+                        generalText21 = { type = "description", order = 21, fontSize = "medium", name = "Berick (https://www.patreon.com/berick)", width = "double", },
+						blank22 = { type = "description", order = 22, fontSize = "small", name = "", width = "full", },
+                        generalText30 = { type = "description", order = 30, fontSize = "medium", name = "\nFormer Creator/Author/Developer: ProfitzTV", width = "full", },
+                        blank31 = { type = "description", order = 31, fontSize = "small", name = "", width = "full", },
+                        generalText40 = { type = "description", order = 40, fontSize = "medium", name = "Twitter:", width = "half", },
+                        generalText41 = { type = "description", order = 41, fontSize = "medium", name = "ProfitzTV (https://www.twitter.com/ProfitzTV)", width = "double", },
+                        blank42 = { type = "description", order = 42, fontSize = "small", name = "", width = "full", },
+                        generalText50 = { type = "description", order = 50, fontSize = "medium", name = "Twitch:", width = "half", },
+                        generalText51 = { type = "description", order = 51, fontSize = "medium", name = "ProfitzTV (https://www.twitch.tv/ProfitzTV)", width = "double", },
+                        blank52 = { type = "description", order = 52, fontSize = "small", name = "", width = "full", },
+                        generalText60 = { type = "description", order = 60, fontSize = "medium", name = "YouTube:", width = "half", },
+                        generalText61 = { type = "description", order = 61, fontSize = "medium", name = "ProfitzTV (https://www.youtube.com/ProfitzTV)", width = "double", },
+						blank62 = { type = "description", order = 62, fontSize = "small", name = "", width = "full", },
+                        generalText70 = { type = "description", order = 70, fontSize = "medium", name = "\nFormer Co-Author/Developer: Testerle", width = "full", },
+                        blank71 = { type = "description", order = 71, fontSize = "small",name = "",width = "full", },
                         earlyAdoptersHeader = { order = 81, type = "header", name = "Early Adopters/Beta Testers:", },	
                         generalText100 = { type = "description", order = 100, fontSize = "medium", name = "ACubed10, Brozerian, Conzec89, Goldgoblin, DozerBob, Fatherfajita, GoblinRaset, Hxtasy, JuniorDeBoss, Killerdamage, Morricade, PhatLewts, Selltacular, Skittlezz420, Soulslicer, Pellew", width = "full", },
                     },
@@ -718,12 +698,12 @@ function Config:OnEnable()
     LSM:Register("sound", "Raid Warning", 567397) -- RaidWarning
     LSM:Register("sound", "Ready Check", 567409) -- ReadyCheck
 
-    -- general LootAppraiser configuration
-    AceConfigRegistry:RegisterOptionsTable("LootAppraiser", options.args.general)
-    --AceConfigRegistry:RegisterOptionsTable("LootAppraiser Statistic", options.args.statistic, "LootAppraiser")
+    -- general LootAppraiserReloaded configuration
+    AceConfigRegistry:RegisterOptionsTable("LootAppraiser Reloaded", options.args.general)
+    --AceConfigRegistry:RegisterOptionsTable("LootAppraiserReloaded Statistic", options.args.statistic, "LootAppraiserReloaded")
 
-    local lootAppraiserConfig = AceConfigDialog:AddToBlizOptions("LootAppraiser")
-    lootAppraiserConfig.default = private.resetDB -- add reset function
+    local LootAppraiserReloadedConfig = AceConfigDialog:AddToBlizOptions("LootAppraiser Reloaded")
+    LootAppraiserReloadedConfig.default = private.resetDB -- add reset function
 
     -- Fix sink config options
     options.args.general.args.notificationOptionsGrp.args.notificationLibSink.order = 200
@@ -738,7 +718,7 @@ function private.resetDB()
 
     LA.db:ResetProfile(false, true)
 
-    AceConfigRegistry:NotifyChange("LootAppraiser")
+    AceConfigRegistry:NotifyChange("LootAppraiser Reloaded")
 end
 
 

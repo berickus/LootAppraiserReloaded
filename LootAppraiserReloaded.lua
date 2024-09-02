@@ -9,7 +9,7 @@ local LibParse = LibStub:GetLibrary("LibParse")
 local OEMarketInfo = OEMarketInfo
 local AuctionatorInfo = AuctionatorInfo
 local BlizzardVendorSell = 1	-- used to always show blizzard's native vendor sell pricing as a pricesource 
-local LootAppraiser_GroupLoot = LootAppraiser_GroupLoot
+local LootAppraiserReloaded_GroupLoot = LootAppraiserReloaded_GroupLoot
 
 --lootPrompt = 0 -- set to have it show by default upon first loot 
 
@@ -18,8 +18,8 @@ local select, tostring, time, unpack, tonumber, floor, pairs, tinsert, smatch, m
 select, tostring, time, unpack, tonumber, floor, pairs, table.insert, string.match, math, gsub
 
 -- wow APIs
-local GetContainerItemID, GetContainerItemInfo, GetUnitName, GetItemInfo, IsShiftKeyDown, InterfaceOptionsFrame_OpenToCategory, GetBestMapForUnit, PlaySoundFile, GameFontNormal, RegisterAddonMessagePrefix, IsInGroup, UnitGUID, SecondsToTime, StaticPopupDialogs, StaticPopup_Show, SendAddonMessage =
-GetContainerItemID, GetContainerItemInfo, GetUnitName, GetItemInfo, IsShiftKeyDown, InterfaceOptionsFrame_OpenToCategory, C_Map.GetBestMapForUnit, PlaySoundFile, GameFontNormal, C_ChatInfo.RegisterAddonMessagePrefix, IsInGroup, UnitGUID, SecondsToTime, StaticPopupDialogs, StaticPopup_Show, C_ChatInfo.SendAddonMessage
+local GetContainerItemID, GetContainerItemInfo, GetUnitName, GetItemInfo, IsShiftKeyDown, GetBestMapForUnit, PlaySoundFile, GameFontNormal, RegisterAddonMessagePrefix, IsInGroup, UnitGUID, SecondsToTime, StaticPopupDialogs, StaticPopup_Show, SendAddonMessage =
+GetContainerItemID, GetContainerItemInfo, GetUnitName, GetItemInfo, IsShiftKeyDown, C_Map.GetBestMapForUnit, PlaySoundFile, GameFontNormal, C_ChatInfo.RegisterAddonMessagePrefix, IsInGroup, UnitGUID, SecondsToTime, StaticPopupDialogs, StaticPopup_Show, C_ChatInfo.SendAddonMessage
 local INSTANCE_RESET_SUCCESS, OKAY, LOOT_ITEM_SELF, LOOT_ITEM_SELF_MULTIPLE = INSTANCE_RESET_SUCCESS, OKAY, LOOT_ITEM_SELF, LOOT_ITEM_SELF_MULTIPLE
 
 
@@ -128,8 +128,8 @@ if callback then
 callback()
 end
 else
-InterfaceOptionsFrame_OpenToCategory(LA.CONST.METADATA.NAME)
-InterfaceOptionsFrame_OpenToCategory(LA.CONST.METADATA.NAME)
+	Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+    SettingsPanel.AddOnsTab:Click()
 end
 end
 end,})
@@ -166,7 +166,7 @@ function LA:OnInitialize()
 	LA.icon = LibStub("LibDBIcon-1.0")
 	LA.LibDataBroker = LibStub("LibDataBroker-1.1"):NewDataObject(LA.CONST.METADATA.NAME, {
 		type = "launcher",
-		text ="LootAppraiser",	-- used as a label to load LA from datatext panels with UI addons like ElvUI (datatext panel)
+		text ="LootAppraiser Reloaded",	-- used as a label to load LA from datatext panels with UI addons like ElvUI (datatext panel)
 		icon = "Interface\\Icons\\Ability_Racial_PackHobgoblin",
 
 		OnClick = function(self, button, down)
@@ -192,8 +192,9 @@ function LA:OnInitialize()
 						callback()
 					end
 				else
-					InterfaceOptionsFrame_OpenToCategory(LA.CONST.METADATA.NAME)
-					InterfaceOptionsFrame_OpenToCategory(LA.CONST.METADATA.NAME)
+					LA.Debug.Log("Name: "..LA.CONST.METADATA.NAME)
+					Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+    				SettingsPanel.AddOnsTab:Click()
 				end
 			end
 		end,
@@ -256,8 +257,8 @@ function LA:OnEnable()
     private.PreparePricesources()
 
     -- register chat commands
-    LA:RegisterChatCommand("la", private.chatCmdLootAppraiser)
-    LA:RegisterChatCommand("lal", private.chatCmdLootAppraiserLite)
+    LA:RegisterChatCommand("la", private.chatCmdLootAppraiserReloaded)
+    LA:RegisterChatCommand("lal", private.chatCmdLootAppraiserReloadedLite)
     LA:RegisterChatCommand("laa", private.chatCmdGoldAlertTresholdMonitor)
     LA:RegisterChatCommand("lade", private.chatCmdUseDisenchantValueStatus)
 	LA:RegisterChatCommand("laconfig", private.chatCmdShowConfig)
@@ -273,7 +274,7 @@ function LA:OnEnable()
 	-- ...looting currency
 	LA:RegisterEvent("CHAT_MSG_MONEY", private.OnChatMsgMoney)
 
-	-- register addon message prefix for LootAppraiser_GroupLoot
+	-- register addon message prefix for LootAppraiserReloaded_GroupLoot
     RegisterAddonMessagePrefix(LA.CONST.PARTYLOOT_MSGPREFIX)
 	
 	-- register event for merchant to sell / vendor grays
@@ -493,7 +494,7 @@ function private.PreparePricesources()
 	-- only 2 or less price sources -> chat msg: missing modules
 	if LA.Util.tablelength(priceSources) == 0 then
 		StaticPopupDialogs["LA_NO_PRICESOURCES"] = {
-			text = "|cffff0000Attention!|r Missing additional addons for price sources (e.g. like TradeSkillMaster, Oribos Exchange, or Auctionator).\n\n|cffff0000LootAppraiser disabled.|r",
+			text = "|cffff0000Attention!|r Missing additional addons for price sources (e.g. like TradeSkillMaster, Oribos Exchange, or Auctionator).\n\n|cffff0000LootAppraiser Reloaded disabled.|r",
 			button1 = OKAY,
 			timeout = 0,
 			whileDead = true,
@@ -501,7 +502,7 @@ function private.PreparePricesources()
 		}
 		StaticPopup_Show("LA_NO_PRICESOURCES")
 
-		LA:Print("|cffff0000LootAppraiser disabled.|r (see popup window for further details)")
+		LA:Print("|cffff0000LootAppraiser Reloaded disabled.|r (see popup window for further details)")
 		LA:Disable()
 		return
 	else
@@ -544,7 +545,7 @@ end
 
 -- propagate group loot
 function private.SendAddonMsg(...)
-	if LootAppraiser_GroupLoot then
+	if LootAppraiserReloaded_GroupLoot then
 		return
 	end
 
@@ -645,7 +646,7 @@ function private.chatCmdUseDisenchantValueStatus()
 end
 
 -- open loot appraiser and start a new session
-function private.chatCmdLootAppraiser(input)
+function private.chatCmdLootAppraiserReloaded(input)
 	-- first: reset frames if requested
 	if input == "freset" then LA.UI.ResetFrames() end
 
@@ -657,7 +658,8 @@ end
 
 -- command to show config menu for LA (especially if mini-map is disabled)
 function private.chatCmdShowConfig()
-	InterfaceOptionsFrame_OpenToCategory(LA.CONST.METADATA.NAME)
+	Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+    SettingsPanel.AddOnsTab:Click()
 end
 
 --[[
@@ -671,7 +673,7 @@ end
 --]]
 
 -- open loot appraiser lite and start a new session
-function private.chatCmdLootAppraiserLite()
+function private.chatCmdLootAppraiserReloadedLite()
     if not LA.Session.IsRunning() then
         LA.Session.Start(false)
     end
@@ -923,8 +925,8 @@ end
 			-- toast
 			if LA.GetFromDb("notification", "enableToasts") then
 				local name, _, _, _, _, _, _, _, _, texturePath = GetItemInfo(itemID)
-				--LibToast:Spawn("LootAppraiser", name, texturePath, quality, quantity, formattedValue, source)
-				LibToast:Spawn("LootAppraiser", name, texturePath, quality, quantity, formatValue, source)	--updated to show qty value > 1
+				--LibToast:Spawn("LootAppraiserReloaded", name, texturePath, quality, quantity, formattedValue, source)
+				LibToast:Spawn("LootAppraiserReloaded", name, texturePath, quality, quantity, formatValue, source)	--updated to show qty value > 1
 			end
 		end
 
@@ -1065,7 +1067,7 @@ function private.GetItemValue(itemID, priceSource)
 		elseif priceSource == "Auctionator" then
 			local priceInfo = {}
 			--Usage Auctionator.API.v1.GetAuctionPriceByItemID(string, number)
-			AuctionatorInfo = Auctionator.API.v1.GetAuctionPriceByItemID("LootAppraiser", itemID)
+			AuctionatorInfo = Auctionator.API.v1.GetAuctionPriceByItemID("LootAppraiserReloaded", itemID)
 			return AuctionatorInfo
 
 		else
@@ -1237,12 +1239,12 @@ function private.GetAvailablePriceSources()
 end
 
 
--- init lootappraiser db
+-- init LootAppraiserReloaded db
 function private.InitDB()
     LA.Debug.Log("InitDB")
 
     -- load the saved db values
-    LA.db = LibStub:GetLibrary("AceDB-3.0"):New("LootAppraiserDB", LA.CONST.DB_DEFAULTS, true)
+    LA.db = LibStub:GetLibrary("AceDB-3.0"):New("LootAppraiserReloadedDB", LA.CONST.DB_DEFAULTS, true)
 	
 	-- Added db for tracking loot and sessions
 	LALoot = LibStub("AceDB-3.0"):New("LALootDB", LA.CONST.DB_LOOT, true) --make sure global 
@@ -1322,13 +1324,13 @@ function LA:ShowStartSessionDialog()
 	--if lootPrompt == true then return end -- return if they answered NO to the loot prompt
 	if START_SESSION_PROMPT then return end -- gui is already open
 			
-	local openLootAppraiser = true
+	local openLootAppraiserReloaded = true
 
 	-- create 'start session prompt' frame
 	START_SESSION_PROMPT = AceGUI:Create("Frame")	
 	START_SESSION_PROMPT:SetStatusTable(self.db.profile.startSessionPromptUI)
 	START_SESSION_PROMPT:SetLayout("Flow")
-	START_SESSION_PROMPT:SetTitle("Would you like to start a LootAppraiser session?")
+	START_SESSION_PROMPT:SetTitle("Would you like to start a LootAppraiser Reloaded session?")
 	START_SESSION_PROMPT:SetPoint("CENTER")
 	START_SESSION_PROMPT:SetWidth(250)
 	START_SESSION_PROMPT:SetHeight(115)
@@ -1347,7 +1349,7 @@ function LA:ShowStartSessionDialog()
 	btnYes:SetText("Yes" .. " ")
 	btnYes:SetCallback("OnClick", 
 		function()
-			LA:StartSession(openLootAppraiser)
+			LA:StartSession(openLootAppraiserReloaded)
             START_SESSION_PROMPT:Release()
             START_SESSION_PROMPT = nil
 		end
@@ -1374,13 +1376,13 @@ function LA:ShowStartSessionDialog()
 
 	-- Checkbox: Open LA window	
 	local checkboxOpenWindow = AceGUI:Create("CheckBox")
-	checkboxOpenWindow:SetValue(openLootAppraiser)
-	checkboxOpenWindow:SetLabel(" " .. "Open LootAppraiser window")
+	checkboxOpenWindow:SetValue(openLootAppraiserReloaded)
+	checkboxOpenWindow:SetLabel(" " .. "Open LootAppraiser Reloaded window")
 	checkboxOpenWindow:SetCallback("OnValueChanged",
 		function(value)
 			--self:Debug("  OnValueChanged: value=%s", tostring(value))
 			--LA:print_r(value)
-			openLootAppraiser = value.checked
+			openLootAppraiserReloaded = value.checked
 		end
 	)
 

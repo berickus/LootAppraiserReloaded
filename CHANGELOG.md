@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.2.7
+### Changed
+- Added wago release in workflow
+
 ## v2.2.6
 ### Changed
  - Adjusted About in config

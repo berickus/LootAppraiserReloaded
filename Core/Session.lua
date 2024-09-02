@@ -62,7 +62,7 @@ end
 
 -- start a new session
 function Session.Start(showMainUI)
---    LA.SetLootAppraiserDisabled(false)
+--    LA.SetLootAppraiserReloadedDisabled(false)
 
     if not Session.IsRunning() then
         LA:Print("Start Session")

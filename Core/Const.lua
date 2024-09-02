@@ -1,4 +1,4 @@
-local LA = LibStub("AceAddon-3.0"):NewAddon(select(2, ...), "LootAppraiser", "AceConsole-3.0", "AceEvent-3.0",  "LibSink-2.0") -- "AceHook-3.0",
+local LA = LibStub("AceAddon-3.0"):NewAddon(select(2, ...), "LootAppraiserReloaded", "AceConsole-3.0", "AceEvent-3.0",  "LibSink-2.0") -- "AceHook-3.0",
 
 -- wow api
 local GetAddOnMetadata, UIParent = C_AddOns.GetAddOnMetadata, UIParent
@@ -10,8 +10,6 @@ CONST.METADATA = {
     NAME = GetAddOnMetadata(..., "Title"),
     VERSION = GetAddOnMetadata(..., "Version")
 }
-
-CONST.LAGUILDED = "https://www.guilded.gg/r/Ad8jyP61OE?i=54kKyPE4"
 
 CONST.QUALITY_FILTER = { -- little hack to sort them in the menu
     ["0"] = "|cff9d9d9dPoor|r",
@@ -58,8 +56,8 @@ CONST.DB_DEFAULTS = {
         pricesource = { ["source"] = "DBRegionMarketAvg", ["useDisenchantValue"] = false },
         notification = { ["sink"] = { ["sink20Sticky"] = false, ["sink20OutputSink"] = "RaidWarning", }, ["enableToasts"] = false, ["qualityFilter"] = "1", ["goldAlertThresholdA"] = "100", ["goldAlertThresholdB"] = "0", ["goldAlertThresholdC"] = "0", ["playSoundEnabled"] = true, ["soundNameA"] = "Auction Window Open", ["soundNameB"] = "None",["soundNameC"] = "None",},
         itemclasses = { },
-        sellTrash = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser`Trash", },
-        blacklist = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser`Blacklist", ["addBlacklistedItems2DestroyTrash"] = false, },
+        sellTrash = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser Reloaded`Trash", },
+        blacklist = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser Reloaded`Blacklist", ["addBlacklistedItems2DestroyTrash"] = false, },
         display = {
             lootedItemListRowCount = 5,
             showZoneInfo = true,
@@ -71,8 +69,8 @@ CONST.DB_DEFAULTS = {
             showNoteworthyItems = true,
 			showValueSoldToVendor = false,
             enableLastNoteworthyItemUI = false,
-            enableLootAppraiserLite = false,
-            enableLootAppraiserTimerUI = false,
+            enableLootAppraiserReloadedLite = false,
+            enableLootAppraiserReloadedTimerUI = false,
             enableStatisticTooltip = true,
             enableMinimapIcon = true,
             showLootedItemValueGroup = false,

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.2.9
+### Changed
+- Bump interface version
+
 ## v2.2.8
 ### Changed
 - Bump ToC version

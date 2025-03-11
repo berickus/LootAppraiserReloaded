@@ -301,13 +301,10 @@ PetData[174476] = "p:2848:1:3" --  Black Chitinous Plate -> Aqir Tunneler
 PetData[174458] = "p:2839:1:3" --  Void-Scarred Hare
 PetData[174475] = "p:2847:1:3" --  Stinky Sack -> Rotbreath
 PetData[174474] = "p:2846:1:3" --  Corrupted Tentacle
---PetData[174479] = "" --  Jade Defender	**pending TSM pet string
---PetData[174481] = "" --  Cursed Dune Watcher	**pending TSM pet string
-
+-- PetData[174479] = "" --  Jade Defender	**pending TSM pet string
+-- PetData[174481] = "" --  Cursed Dune Watcher	**pending TSM pet string
 
 function PetData.ItemID2Species(itemId)
-    if itemId and PetData[itemId] then
-        return PetData[itemId]
-    end
+    if itemId and PetData[itemId] then return PetData[itemId] end
     return itemId
 end

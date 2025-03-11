@@ -1,5 +1,5 @@
 -- LootAppraiserReloaded_TSM.lua --
---local LA = LibStub("AceAddon-3.0"):GetAddon("LootAppraiserReloaded")
+-- local LA = LibStub("AceAddon-3.0"):GetAddon("LootAppraiserReloaded")
 local LA = select(2, ...)
 
 local TSM = {}
@@ -7,11 +7,9 @@ LA.TSM = TSM
 
 local private = {}
 
-
 -- Lua APIs
-local tostring, pairs, ipairs, table, select, sort =
-	  tostring, pairs, ipairs, table, select, sort
-
+local tostring, pairs, ipairs, table, select, sort = tostring, pairs, ipairs,
+                                                     table, select, sort
 
 -- TSM3
 local TSMAPI = _G.TSMAPI
@@ -19,158 +17,147 @@ local TSMAPI = _G.TSMAPI
 -- TSM4
 local TSM_API = _G.TSM_API
 
-
 function TSM.IsItemInGroup(itemID, group)
-	-- TSM 3
-	if TSMAPI and TSMAPI.Groups and TSMAPI.Groups.GetPath then
-		local path = TSMAPI.Groups:GetPath("i:" .. tostring(itemID))
-		return path == group
-	end
+    -- TSM 3
+    if TSMAPI and TSMAPI.Groups and TSMAPI.Groups.GetPath then
+        local path = TSMAPI.Groups:GetPath("i:" .. tostring(itemID))
+        return path == group
+    end
 
-	-- TSM 4
-	if TSM_API and TSM_API.GetGroupPathByItem then
-		local path = TSM_API.GetGroupPathByItem("i:" .. tostring(itemID))
-		LA.Debug.Log("    path = \"" .. tostring(path) .. "\"")
-		return path == group
-	end
+    -- TSM 4
+    if TSM_API and TSM_API.GetGroupPathByItem then
+        local path = TSM_API.GetGroupPathByItem("i:" .. tostring(itemID))
+        LA.Debug.Log("    path = \"" .. tostring(path) .. "\"")
+        return path == group
+    end
 
-	return false
+    return false
 end
-
 
 -- this method also encapsulate the special price source 'custom'
 function TSM.GetItemValue(itemID, priceSource)
-	-- special handling for priceSource = 'Custom'
-	if priceSource == "Custom" then
-		LA.Debug.Log("    price source (custom): " ..  LA.db.profile.pricesource.customPriceSource)
+    -- special handling for priceSource = 'Custom'
+    if priceSource == "Custom" then
+        LA.Debug.Log("    price source (custom): " ..
+                         LA.db.profile.pricesource.customPriceSource)
 
-		-- TSM 3
-		if TSMAPI and TSMAPI.GetCustomPriceValue then
-			return TSMAPI:GetCustomPriceValue(LA.db.profile.pricesource.customPriceSource, itemID)
-		end
-
-		-- TSM 4
-        if TSM_API and TSM_API.GetCustomPriceValue then
-			return TSM_API.GetCustomPriceValue(LA.db.profile.pricesource.customPriceSource, "i:" .. tostring(itemID))
+        -- TSM 3
+        if TSMAPI and TSMAPI.GetCustomPriceValue then
+            return TSMAPI:GetCustomPriceValue(
+                       LA.db.profile.pricesource.customPriceSource, itemID)
         end
 
-		return 0		
-	end
+        -- TSM 4
+        if TSM_API and TSM_API.GetCustomPriceValue then
+            return TSM_API.GetCustomPriceValue(
+                       LA.db.profile.pricesource.customPriceSource,
+                       "i:" .. tostring(itemID))
+        end
 
-	-- TSM 3
-	if TSMAPI and TSMAPI.GetItemValue then
-		return TSMAPI:GetItemValue(itemID, priceSource)
-	end
+        return 0
+    end
 
-	-- TSM 4
-	if TSM_API and TSM_API.GetCustomPriceValue then
-		local itemLink
+    -- TSM 3
+    if TSMAPI and TSMAPI.GetItemValue then
+        return TSMAPI:GetItemValue(itemID, priceSource)
+    end
 
-		local newItemID = LA.PetData.ItemID2Species(itemID) -- battle pet handling
-		if newItemID == itemID then
-			itemLink = "i:" .. tostring(itemID)
-		else
-			itemLink = newItemID
-		end
+    -- TSM 4
+    if TSM_API and TSM_API.GetCustomPriceValue then
+        local itemLink
 
-		return TSM_API.GetCustomPriceValue(priceSource, itemLink) -- "i:" .. tostring(itemID)
-	end
+        local newItemID = LA.PetData.ItemID2Species(itemID) -- battle pet handling
+        if newItemID == itemID then
+            itemLink = "i:" .. tostring(itemID)
+        else
+            itemLink = newItemID
+        end
 
-	return 0
+        return TSM_API.GetCustomPriceValue(priceSource, itemLink) -- "i:" .. tostring(itemID)
+    end
+
+    return 0
 end
 
-
 function TSM.ParseCustomPrice(value)
-	LA.Debug.Log("ParseCustomPrice(value=" .. tostring(value) .. ")")
+    LA.Debug.Log("ParseCustomPrice(value=" .. tostring(value) .. ")")
 
-	-- TSM 3
-	if TSMAPI and TSMAPI.ValidateCustomPrice then
-		return TSMAPI:ValidateCustomPrice(value)
-	end
+    -- TSM 3
+    if TSMAPI and TSMAPI.ValidateCustomPrice then
+        return TSMAPI:ValidateCustomPrice(value)
+    end
 
-	-- TSM 4
+    -- TSM 4
     if TSM_API and TSM_API.IsCustomPriceValid then
         return TSM_API.IsCustomPriceValid(value)
     end
 
-	return false
+    return false
 end
-
 
 function TSM.IsTSMLoaded()
-	if TSMAPI or TSM_API then
-		return true
-	end
-	return false
+    if TSMAPI or TSM_API then return true end
+    return false
 end
-
 
 -- returns a table with the filtered available price sources
 function TSM.GetAvailablePriceSources()
-	LA.Debug.Log("TSM.GetAvailablePriceSources")
+    LA.Debug.Log("TSM.GetAvailablePriceSources")
 
-	if not TSM.IsTSMLoaded() then
-		LA.Debug.Log("TSM.GetAvailablePriceSources: TSM not loaded")
-		return
-	end
+    if not TSM.IsTSMLoaded() then
+        LA.Debug.Log("TSM.GetAvailablePriceSources: TSM not loaded")
+        return
+    end
 
-	local priceSources = {}
-	local keys = {}
+    local priceSources = {}
+    local keys = {}
 
-	-- filter
-	local tsmPriceSources = private.GetPriceSources()
+    -- filter
+    local tsmPriceSources = private.GetPriceSources()
 
-	for k, v in pairs(tsmPriceSources) do
-		if LA.CONST.PRICE_SOURCE[k] then
-			table.insert(keys, k)
-		elseif LA.CONST.PRICE_SOURCE[v] then
-			table.insert(keys, v)
-		end
-	end
+    for k, v in pairs(tsmPriceSources) do
+        if LA.CONST.PRICE_SOURCE[k] then
+            table.insert(keys, k)
+        elseif LA.CONST.PRICE_SOURCE[v] then
+            table.insert(keys, v)
+        end
+    end
 
-	-- add custom
-	table.insert(keys, "Custom")
-	sort(keys)
+    -- add custom
+    table.insert(keys, "Custom")
+    sort(keys)
 
-	for _,v in ipairs(keys) do
-		priceSources[v] = LA.CONST.PRICE_SOURCE[v]
-	end
+    for _, v in ipairs(keys) do priceSources[v] = LA.CONST.PRICE_SOURCE[v] end
 
-	return priceSources
+    return priceSources
 end
-
 
 function private.GetPriceSources()
-	-- TSM 3
-	if TSMAPI and TSMAPI.GetPriceSources then
-		return select(1, TSMAPI:GetPriceSources())
-	end
+    -- TSM 3
+    if TSMAPI and TSMAPI.GetPriceSources then
+        return select(1, TSMAPI:GetPriceSources())
+    end
 
-	-- TSM 4
-	if TSM_API and TSM_API.GetPriceSourceKeys then
-		local tempPriceSources = {}
-		TSM_API.GetPriceSourceKeys(tempPriceSources)
+    -- TSM 4
+    if TSM_API and TSM_API.GetPriceSourceKeys then
+        local tempPriceSources = {}
+        TSM_API.GetPriceSourceKeys(tempPriceSources)
 
-		return tempPriceSources
-	end
+        return tempPriceSources
+    end
 
-	return {}
+    return {}
 end
 
-
-function TSM.GetGroupPaths(values)
-	TSM_API.GetGroupPaths(values)
-end
+function TSM.GetGroupPaths(values) TSM_API.GetGroupPaths(values) end
 
 function TSM.IsGroupValid(value)
-	local itemString = TSM_API.ToItemString(value)
-	local itemLink = itemString and TSMAPI.GetItemLink(itemString)
-	if not itemLink then
-		-- Log whatever error you want
-	end
+    local itemString = TSM_API.ToItemString(value)
+    local itemLink = itemString and TSMAPI.GetItemLink(itemString)
+    if not itemLink then
+        -- Log whatever error you want
+    end
 end
-
-
 
 function TSM.GetGroupPathByItem(itemString)
     -- TSM 3

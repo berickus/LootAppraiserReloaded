@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.2.11
+### Changed
+- Fixed a bug when only one threshold was set
+- Fixed notification view on options menu
+
 ## v2.2.10
 ### Changed
 - Bump interface version

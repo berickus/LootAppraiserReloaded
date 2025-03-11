@@ -1,4 +1,7 @@
-local LA = LibStub("AceAddon-3.0"):NewAddon(select(2, ...), "LootAppraiserReloaded", "AceConsole-3.0", "AceEvent-3.0",  "LibSink-2.0") -- "AceHook-3.0",
+local LA = LibStub("AceAddon-3.0"):NewAddon(select(2, ...),
+                                            "LootAppraiserReloaded",
+                                            "AceConsole-3.0", "AceEvent-3.0",
+                                            "LibSink-2.0") -- "AceHook-3.0",
 
 -- wow api
 local GetAddOnMetadata, UIParent = C_AddOns.GetAddOnMetadata, UIParent
@@ -21,8 +24,8 @@ CONST.QUALITY_FILTER = { -- little hack to sort them in the menu
 
 -- TSM predefined price sources + 'Custom'
 CONST.PRICE_SOURCE = {
-    ["VendorValue"] = "BLIZ: Vendor price",              --Native Blizzard Pricing for Vendor
-    ["Custom"] = "Custom Price Source",                  -- TSM price sources
+    ["VendorValue"] = "BLIZ: Vendor price", -- Native Blizzard Pricing for Vendor
+    ["Custom"] = "Custom Price Source", -- TSM price sources
     ["DBHistorical"] = "TSM: Historical Price",
     ["DBMarket"] = "TSM: Market Value",
     ["DBRecent"] = "TSM: Recent Value",
@@ -30,10 +33,9 @@ CONST.PRICE_SOURCE = {
     ["DBRegionHistorical"] = "TSM: Region Historical Price",
     ["DBRegionMarketAvg"] = "TSM: Region Market Value Avg",
     ["DBRegionSaleAvg"] = "TSM: Region Sale Avg",
-    ["DBRegionSaleAvg"] = "TSM: Region Global Sale Average",
     ["VendorSell"] = "TSM: VendorSell",
-    ["region"] = "OE: Median All Realms in Region",     --OEMarketInfo (OE) (add:  ["market"] = "OE: Median AH 4-Day")
-    ["Auctionator"] = "AN: Auctionator",                    -- Auctionator price source
+    ["region"] = "OE: Median All Realms in Region", -- OEMarketInfo (OE) (add:  ["market"] = "OE: Median AH 4-Day")
+    ["Auctionator"] = "AN: Auctionator" -- Auctionator price source
 }
 
 CONST.PARTYLOOT_MSGPREFIX = "LA_PARTYLOOT"
@@ -44,20 +46,80 @@ CONST.DB_DEFAULTS = {
     profile = {
         enableDebugOutput = false,
         -- minimap icon position and visibility
-        minimapIcon = { hide = false, minimapPos = 220, radius = 80, },
-        mainUI = { ["height"] = 400, ["top"] = (parentHeight-50), ["left"] = 50, ["width"] = 400, },
-        timerUI = { ["height"] = 32, ["top"] = (parentHeight+55), ["left"] = 50, ["width"] = 400, },
-        challengeUI = { ["height"] = 400, ["top"] = (parentHeight-50), ["left"] = 50, ["width"] = 400, },
-        liteUI = { ["height"] = 32, ["top"] = (parentHeight+20), ["left"] = 50, ["width"] = 400, },
-        lastNotewothyItemUI = { ["height"] = 32, ["top"] = (parentHeight-15), ["left"] = 50, ["width"] = 400, },
-		lastNotewothyItemUI2 = { ["height"] = 32, ["top"] = (parentHeight-15), ["left"] = 50, ["width"] = 400, },
-        startSessionPromptUI = { },
-        general = { ["ignoreRandomEnchants"] = true, ["surpressSessionStartDialog"] = true, ["ignoreSoulboundItems"] = false,  ["sellGrayItemsToVendor"] = false, ["autoRepairGear"] = false },
-        pricesource = { ["source"] = "DBRegionMarketAvg", ["useDisenchantValue"] = false },
-        notification = { ["sink"] = { ["sink20Sticky"] = false, ["sink20OutputSink"] = "RaidWarning", }, ["enableToasts"] = false, ["qualityFilter"] = "1", ["goldAlertThresholdA"] = "100", ["goldAlertThresholdB"] = "0", ["goldAlertThresholdC"] = "0", ["playSoundEnabled"] = true, ["soundNameA"] = "Auction Window Open", ["soundNameB"] = "None",["soundNameC"] = "None",},
-        itemclasses = { },
-        sellTrash = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser Reloaded`Trash", },
-        blacklist = { ["tsmGroupEnabled"] = false, ["tsmGroup"] = "LootAppraiser Reloaded`Blacklist", ["addBlacklistedItems2DestroyTrash"] = false, },
+        minimapIcon = {hide = false, minimapPos = 220, radius = 80},
+        mainUI = {
+            ["height"] = 400,
+            ["top"] = (parentHeight - 50),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        timerUI = {
+            ["height"] = 32,
+            ["top"] = (parentHeight + 55),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        challengeUI = {
+            ["height"] = 400,
+            ["top"] = (parentHeight - 50),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        liteUI = {
+            ["height"] = 32,
+            ["top"] = (parentHeight + 20),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        lastNotewothyItemUI = {
+            ["height"] = 32,
+            ["top"] = (parentHeight - 15),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        lastNotewothyItemUI2 = {
+            ["height"] = 32,
+            ["top"] = (parentHeight - 15),
+            ["left"] = 50,
+            ["width"] = 400
+        },
+        startSessionPromptUI = {},
+        general = {
+            ["ignoreRandomEnchants"] = true,
+            ["surpressSessionStartDialog"] = true,
+            ["ignoreSoulboundItems"] = false,
+            ["sellGrayItemsToVendor"] = false,
+            ["autoRepairGear"] = false
+        },
+        pricesource = {
+            ["source"] = "DBRegionMarketAvg",
+            ["useDisenchantValue"] = false
+        },
+        notification = {
+            ["sink"] = {
+                ["sink20Sticky"] = false,
+                ["sink20OutputSink"] = "RaidWarning"
+            },
+            ["enableToasts"] = false,
+            ["qualityFilter"] = "1",
+            ["goldAlertThresholdA"] = "100",
+            ["goldAlertThresholdB"] = "0",
+            ["goldAlertThresholdC"] = "0",
+            ["playSoundEnabled"] = true,
+            ["soundNameA"] = "Auction Window Open",
+            ["soundNameB"] = "None",
+            ["soundNameC"] = "None"
+        },
+        itemclasses = {},
+        sellTrash = {
+            ["tsmGroupEnabled"] = false,
+            ["tsmGroup"] = "LootAppraiser Reloaded`Trash"
+        },
+        blacklist = {
+            ["tsmGroupEnabled"] = false,
+            ["tsmGroup"] = "LootAppraiser Reloaded`Blacklist",
+            ["addBlacklistedItems2DestroyTrash"] = false
+        },
         display = {
             lootedItemListRowCount = 5,
             showZoneInfo = true,
@@ -67,7 +129,7 @@ CONST.DB_DEFAULTS = {
             showCurrencyLooted = true,
             showItemsLooted = true,
             showNoteworthyItems = true,
-			showValueSoldToVendor = false,
+            showValueSoldToVendor = false,
             enableLastNoteworthyItemUI = false,
             enableLootAppraiserReloadedLite = false,
             enableLootAppraiserReloadedTimerUI = false,
@@ -76,19 +138,13 @@ CONST.DB_DEFAULTS = {
             showLootedItemValueGroup = false,
             showLootedItemValueGroupPerHour = false,
             addGroupDropsToLootedItemList = false,
-            showGroupLootAlerts = true,                              --new value for opting-out of seeing group/party loot alerts
+            showGroupLootAlerts = true -- new value for opting-out of seeing group/party loot alerts
         },
-        sessionData = { groupBy = "datetime", },
+        sessionData = {groupBy = "datetime"}
     },
-    global = { sessions = { }, drops = { }, },
+    global = {sessions = {}, drops = {}}
 }
-CONST.DB_LOOT = {
-	global = {
-		session = { },
-		location = { },
-		loot = { },
-	},
-}
+CONST.DB_LOOT = {global = {session = {}, location = {}, loot = {}}}
 
 --[[  depricating this since item #s are no longer valid
 CONST.ITEM_FILTER_VENDOR = {
@@ -111,20 +167,44 @@ CONST.ITEM_FILTER_VENDOR = {
     ["8766"] = true, ["8932"] = true, ["8948"] = true, ["8950"] = true, ["8952"] = true, ["8953"] = true, ["9260"] = true, ["20404"] = true
 }
 --]]
---CONST.ITEM_FILTER_NOVALUEITEMS = {
-    --DEFAULT ITEM IDs BELOW TO NO VALUE ITEMS - MEANING THESE ITEMS WILL NOT SHOW LOOTED AND HAVE NO VALUE
-	--Blasted Lands loot crates
-		--Emerald Encrusted Chest 			10752
-		--Kum'isha's Junk					12122
-		--Imperfect Draenethyst Fragment	10593	
-		--Flawless Draenethyst Sphere		8244
-	--["10752"] = true, ["12122"] = true, ["10593"] = true, ["8244"] = true
-	--}
+-- CONST.ITEM_FILTER_NOVALUEITEMS = {
+-- DEFAULT ITEM IDs BELOW TO NO VALUE ITEMS - MEANING THESE ITEMS WILL NOT SHOW LOOTED AND HAVE NO VALUE
+-- Blasted Lands loot crates
+-- Emerald Encrusted Chest 			10752
+-- Kum'isha's Junk					12122
+-- Imperfect Draenethyst Fragment	10593	
+-- Flawless Draenethyst Sphere		8244
+-- ["10752"] = true, ["12122"] = true, ["10593"] = true, ["8244"] = true
+-- }
 
 CONST.ITEM_FILTER_BLACKLIST = {
-    --These items are from AQ20.  All of the Idols and Scarabs are Blacklisted.
-    ["20858"] = true, ["20859"] = true, ["20860"] = true, ["20861"] = true, ["20862"] = true, ["20863"] = true, ["20864"] = true, ["20865"] = true,
-    ["20874"] = true, ["20866"] = true, ["20868"] = true, ["20869"] = true, ["20870"] = true, ["20871"] = true, ["20872"] = true, ["20873"] = true,
-    ["20867"] = true, ["20875"] = true, ["20876"] = true, ["20877"] = true,	["20878"] = true, ["20879"] = true, ["20881"] = true, ["20882"] = true,
-    ["19183"] = true, ["18640"] = true, ["8623"]  = true, ["9243"] = true
+    -- These items are from AQ20.  All of the Idols and Scarabs are Blacklisted.
+    ["20858"] = true,
+    ["20859"] = true,
+    ["20860"] = true,
+    ["20861"] = true,
+    ["20862"] = true,
+    ["20863"] = true,
+    ["20864"] = true,
+    ["20865"] = true,
+    ["20874"] = true,
+    ["20866"] = true,
+    ["20868"] = true,
+    ["20869"] = true,
+    ["20870"] = true,
+    ["20871"] = true,
+    ["20872"] = true,
+    ["20873"] = true,
+    ["20867"] = true,
+    ["20875"] = true,
+    ["20876"] = true,
+    ["20877"] = true,
+    ["20878"] = true,
+    ["20879"] = true,
+    ["20881"] = true,
+    ["20882"] = true,
+    ["19183"] = true,
+    ["18640"] = true,
+    ["8623"] = true,
+    ["9243"] = true
 }

@@ -867,8 +867,8 @@ function private.HandleItemLooted(itemLink, itemID, quantity, source)
     local gatSoundToPlay = ""
 
     local gatAValue = tonumber(gatA)
-    local gatBValue = tonumber(gatB)
-    local gatCValue = tonumber(gatC)
+    local gatBValue = tonumber(gatB) or 0
+    local gatCValue = tonumber(gatC) or 0
 
     LA.Debug.Log("gatA: " .. gatAValue)
     LA.Debug.Log("gatB: " .. gatBValue)

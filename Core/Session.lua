@@ -9,25 +9,22 @@ local private = {
     pauseStart = nil,
     sessionPause = 0,
 
-    sessionIsRunning = false,
+    sessionIsRunning = false
 }
-
 
 -- wow api
 local GetBestMapForUnit, GetUnitName, GetRealmName, GetMapInfo =
-C_Map.GetBestMapForUnit, GetUnitName, GetRealmName, C_Map.GetMapInfo
+    C_Map.GetBestMapForUnit, GetUnitName, GetRealmName, C_Map.GetMapInfo
 
 -- lua api
-local time, tonumber =
-time, tonumber
-
+local time, tonumber = time, tonumber
 
 function Session.New()
-	LA.Debug.Log("NewSession")
-	private.PrepareNewSession()
-	LA.UI.ClearLootCollectedList()
-	LA.UI.ClearLastNoteworthyItemUI()
-	LA.UI.RefreshUIs()
+    LA.Debug.Log("NewSession")
+    private.PrepareNewSession()
+    LA.UI.ClearLootCollectedList()
+    LA.UI.ClearLastNoteworthyItemUI()
+    LA.UI.RefreshUIs()
 end
 
 -- pause session (pause and refresh ui)
@@ -53,16 +50,14 @@ function Session.Restart()
 end
 
 function Session.IsRunning()
-    return private.sessionIsRunning --and private.pauseStart == nil
+    return private.sessionIsRunning -- and private.pauseStart == nil
 end
 
-function Session.IsPaused()
-    return private.pauseStart ~= nil
-end
+function Session.IsPaused() return private.pauseStart ~= nil end
 
 -- start a new session
 function Session.Start(showMainUI)
---    LA.SetLootAppraiserReloadedDisabled(false)
+    --    LA.SetLootAppraiserReloadedDisabled(false)
 
     if not Session.IsRunning() then
         LA:Print("Start Session")
@@ -71,27 +66,20 @@ function Session.Start(showMainUI)
         zoneInfo = zoneInfo and zoneInfo.name
         LA.Debug.Log("  mapID=%s (%s)", GetBestMapForUnit("player"), zoneInfo)
 
+        private.sessionIsRunning = true
+        private.PrepareNewSession()
 
-			private.sessionIsRunning = true
-			private.PrepareNewSession()
-
-			-- show main window
-			LA.UI.ShowMainWindow(showMainUI)
+        -- show main window
+        LA.UI.ShowMainWindow(showMainUI)
     end
 end
 
-function Session.GetPauseStart()
-    return private.pauseStart
-end
+function Session.GetPauseStart() return private.pauseStart end
 
-function Session.GetSessionPause()
-    return private.sessionPause
-end
+function Session.GetSessionPause() return private.sessionPause end
 
 function Session.GetCurrentSession(key)
-    if not key then
-        return private.currentSession
-    end
+    if not key then return private.currentSession end
     return private.currentSession[key]
 end
 
@@ -103,15 +91,16 @@ function private.PrepareNewSession()
     LA.Debug.Log("prepareNewSession")
     --    LA.Debug.Log("  savedLoot: %s items", LA.Util.tablelength(private.savedLoot))
     local resetLIV = 0
-	LA.UI.UpdateLiteWindowUI(resetLIV)	--pass to Update Lite Window to reset session and make value zero
+    LA.UI.UpdateLiteWindowUI(resetLIV) -- pass to Update Lite Window to reset session and make value zero
 
     -- start: prepare session
     private.currentSession = {
         start = time(),
         mapID = GetBestMapForUnit("player"),
         settings = {
-            qualityFilter = tonumber(LA.GetFromDb("notification", "qualityFilter")),
-            --gat = tonumber(LA.GetFromDb("general", "goldAlertThreshold")),
+            qualityFilter = tonumber(LA.GetFromDb("notification",
+                                                  "qualityFilter")),
+            -- gat = tonumber(LA.GetFromDb("general", "goldAlertThreshold")),
             gatA = tonumber(LA.GetFromDb("notification", "goldAlertThresholdA")),
             gatB = tonumber(LA.GetFromDb("notification", "goldAlertThresholdB")),
             gatC = tonumber(LA.GetFromDb("notification", "goldAlertThresholdC")),
@@ -119,24 +108,24 @@ function private.PrepareNewSession()
         },
         noteworthyItems = {},
         liv = 0,
-		vendorSoldCurrencyUI = 0,
+        vendorSoldCurrencyUI = 0,
         livGroup = 0,
         player = GetUnitName("player", true) .. "-" .. GetRealmName()
     }
-	LA.UI.UpdateLiteWindowUI(liv)
+    LA.UI.UpdateLiteWindowUI(liv)
 
     private.sessionPause = 0
     private.pauseStart = nil
 
     private.sessionIsRunning = true
     -- end: prepare session (for statistics)
-	
-	-- reset saved variables
-	LALoot.global.session = ""
-	LALoot.global.location = ""
-	LALoot.global.loot = ""
 
---[[
+    -- reset saved variables
+    LALoot.global.session = ""
+    LALoot.global.location = ""
+    LALoot.global.loot = ""
+
+    --[[
 			--add session details
 			local hour, minute = GetGameTime()
 			LALoot.global.session = (hour .. ":" .. minute)

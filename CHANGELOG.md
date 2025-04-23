@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.2.12
+### Changed
+- Bump version for 11.1.5
+- Fixed item ID issue
+- Fixed destroy trash issue
+- Kudos to Tidal
+
 ## v2.2.11
 ### Changed
 - Fixed a bug when only one threshold was set

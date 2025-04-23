@@ -1219,7 +1219,7 @@ function private.OnBtnDestroyTrashClick()
             local link = C_Container.GetContainerItemLink(bag, slot)
 
             -- grey items
-            if link and link:find("ff9d9d9d") then -- Poor = ff9d9d9d
+            if link and link:find("cnIQ0") then -- Poor = ff9d9d9d
                 C_Container.PickupContainerItem(bag,slot)
                 DeleteCursorItem()
 

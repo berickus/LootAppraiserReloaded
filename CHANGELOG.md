@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.2.14
+### Changed
+- Bump version for 11.2.0
+
 ## v2.2.13
 ### Changed
 - Bump version for 11.1.7

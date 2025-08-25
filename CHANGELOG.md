@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.1
+### Changed
+- Improved fetching token price and added automatic update on the token price
+
 ## v2.3.0
 ### Changed
 - Added support to track trade skills, like pilfering, prospecting and in general crafts, it is disabled by default, can be enabled in the options

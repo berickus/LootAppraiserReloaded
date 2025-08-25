@@ -9,6 +9,7 @@ local private = {
     TIMER_UI = nil,
     TIMER_UI_TAB = nil,
     LAST_NOTEWOTHYITEM_UI = nil,
+    WOW_TOKEN = nil,
     --        START_SESSION_PROMPT = nil
 }
 UI.b1 = nil -- private
@@ -211,6 +212,7 @@ end
 -- the main ui
 local additionalButtonHeight = 0
 local mainUItotal = 0
+local updateTimer = 0
 function UI.ShowMainWindow(showMainUI)
     LA.Debug.Log("ShowMainWindow")
 
@@ -244,7 +246,9 @@ function UI.ShowMainWindow(showMainUI)
 	private.MAIN_UI:EnableResize(false)
     private.MAIN_UI.frame:SetClampedToScreen(true)
 
-
+    -- Request the initial market price update
+    C_WowTokenPublic.UpdateMarketPrice()
+    LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
 	
     private.MAIN_UI.frame:SetScript("OnUpdate",
         function(event, elapsed)
@@ -260,6 +264,15 @@ function UI.ShowMainWindow(showMainUI)
 
                     buttonresetInstance:SetText("Reset Instances (" .. LA.Util.tablelength(private.resetInfo) .. "/9)")
                 end
+            end
+
+            updateTimer = updateTimer + elapsed
+            if updateTimer >= 900 then  -- ⏳ Updating every 15 min
+                C_WowTokenPublic.UpdateMarketPrice()
+                C_Timer.After(2, function()  -- 🔹 Wait 2 seconds before updating display
+                    LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
+                end)
+                updateTimer = 0
             end
         end
     )
@@ -980,6 +993,10 @@ function UI.ResetFrames()
     if private.MAIN_UI then
 		private.MAIN_UI:ApplyStatus()
     end
+end
+
+function UI.GetTokenPrice()
+    return LA.UI.WOW_TOKEN
 end
 
 

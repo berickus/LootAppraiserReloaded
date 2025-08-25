@@ -1223,7 +1223,7 @@ end
 function private.IncWoWTokenPercentage(source)
     if source then return end
 
-    local wowToken = C_WowTokenPublic.GetCurrentMarketPrice()
+    local wowToken = LA.UI.GetTokenPrice()
     local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
     local percentage = totalItemValue / wowToken * 100
 

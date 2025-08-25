@@ -945,18 +945,6 @@ local options = {
                                     name = "Show WoW Token price percentage",
                                     desc = "Show the percentage of a WoW Token farmed.",
                                     width = "double",
-                                    set = function(info, value)
-                                        local oldValue =
-                                            LA.db.profile.display[info[#info]]
-                                        if oldValue ~= value then
-                                            LA:Print(
-                                                "WoW Token Alerting: " ..
-                                                    Config.FormatBoolean(value) ..
-                                                    ".")
-                                        end
-                                        LA.db.profile.display[info[#info]] =
-                                            value;
-                                    end
                                 },
                                 resetInstanzeHeader = {
                                     order = 75,

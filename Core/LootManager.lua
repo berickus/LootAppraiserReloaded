@@ -35,7 +35,9 @@ function LogLoot(itemID, itemLink, itemValue)
 
     -- add zone details 
     local currentMapID = C_Map.GetBestMapForUnit("player")
+    LA.Debug.Log("currentMapID: " .. currentMapID)
     local zoneInfo = C_Map.GetMapInfo(currentMapID)
+    LA.Debug.Log("zoneInfo: " .. zoneInfo.name)
     zoneInfo = zoneInfo and zoneInfo.name
 
     -- add looted items from session and location

@@ -261,6 +261,8 @@ function LA:OnEnable()
     -- register event for...
     -- ...looting items (new loot tracking logic)
     LA:RegisterEvent("CHAT_MSG_LOOT", private.OnChatMsgEvents)
+    LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT", private.OnTradeSkillEvents)
+
     -- ...looting currency
     LA:RegisterEvent("CHAT_MSG_MONEY", private.OnChatMsgMoney)
 
@@ -416,7 +418,6 @@ end
 function private.onMerchantEventClosed() LA.Debug.Log("Merchant Closed") end
 
 function private.OnChatMsgEvents(event, msg)
-
     -- is a loot appraiser session running?
     -- if not LA.Session.IsRunning() then return end
 
@@ -463,6 +464,50 @@ function private.OnChatMsgEvents(event, msg)
 
             private.HandleItemLooted(itemLink, itemID, quantity, source)
         end
+    end
+end
+
+function private.OnTradeSkillEvents(event, data)
+    -- is a loot appraiser session running?
+    -- if not LA.Session.IsRunning() then return end
+
+    if not LA.Session.IsRunning() then
+        -- implemented back the prompt for starting LA window upon first loot msg
+        LA:ShowStartSessionDialog()
+
+    end
+    -- pause? restart session
+    if LA.Session.IsPaused() then LA.Session.Restart() end
+
+    -- self
+    local loottype, itemLink, quantity, source
+    itemLink = data.hyperlink
+    quantity = data.quantity
+
+    if data.quantity == 1 then
+        loottype = "## self (single) ##"
+    else
+        loottype = "## self (multi) ##"
+    end
+
+    if loottype then
+        LA.Debug.Log("#### type=%s; itemLink=%s; quantity=%s", loottype,
+                        tostring(itemLink), tostring(quantity))
+        LA.Debug.Log("----source: " .. tostring(source))
+
+        if not itemLink or not quantity then
+            LA.Debug.Log("#### ignore event! data: " .. data .. ", type=" ..
+                                tostring(loottype))
+            LA.Debug.Log("   itemLink=" .. tostring(itemLink) ..
+                                "; quantity=" .. tostring(quantity) ..
+                                "; source=" .. tostring(source) .. ")")
+            return
+            -- this part cancels out and returns so never calls HandledItemLooted() below
+        end
+
+        local itemID = LA.Util.ToItemID(itemLink)
+
+        private.HandleItemLooted(itemLink, itemID, quantity, source)
     end
 end
 

@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.0
+### Changed
+- Added support to track trade skills, like pilfering, prospecting and in general crafts, it is disabled by default
+- Added wow token farmed %
+
 ## v2.2.14
 ### Changed
 - Bump version for 11.2.0

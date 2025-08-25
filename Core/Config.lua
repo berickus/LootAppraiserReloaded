@@ -522,6 +522,24 @@ local options = {
                             end
                         },
 
+                        trackCrafts = {
+                            type = "toggle",
+                            order = 350,
+                            name = "Enable Tradeskill Tracking",
+                            desc = "Enable Tradeskill Tracking",
+                            width = "double",
+                            set = function(info, value)
+                                local oldValue =
+                                    LA.db.profile.notification[info[#info]]
+                                if oldValue ~= value then
+                                    LA:Print(
+                                        "Enable Tradeskill Tracking set: " ..
+                                            Config.FormatBoolean(value) .. ".")
+                                end
+                                LA.db.profile.notification[info[#info]] = value;
+                            end
+                        },
+
                         noteworthyItemSoundHeader = {
                             order = 400,
                             type = "header",

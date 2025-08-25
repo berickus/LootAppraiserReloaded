@@ -101,6 +101,7 @@ CONST.DB_DEFAULTS = {
                 ["sink20OutputSink"] = "RaidWarning"
             },
             ["enableToasts"] = false,
+            ["trackCrafts"] = false,
             ["qualityFilter"] = "1",
             ["goldAlertThresholdA"] = "100",
             ["goldAlertThresholdB"] = "0",

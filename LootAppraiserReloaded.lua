@@ -479,6 +479,10 @@ function private.OnTradeSkillEvents(event, data)
     -- pause? restart session
     if LA.Session.IsPaused() then LA.Session.Restart() end
 
+    if LA.GetFromDb("notification", "trackCrafts") == false then
+        return
+    end
+
     -- self
     local loottype, itemLink, quantity, source
     itemLink = data.hyperlink

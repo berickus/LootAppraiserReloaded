@@ -889,7 +889,8 @@ function private.HandleItemLooted(itemLink, itemID, quantity, source)
 
     private.IncLootedItemCounter(quantity, source) -- increase looted item counter
     private.AddItemValue2LootedItemValue(itemValue, source) -- add item value
-
+    private.IncWoWTokenPercentage(source)
+    
     if addItem2List == true then
         itemValue = singleItemValue
         LA.Debug.Log("itemValue: " .. tostring(itemValue))
@@ -965,6 +966,7 @@ function private.HandleItemLooted(itemLink, itemID, quantity, source)
         private.IncNoteworthyItemCounter(quantity, source)
 
         -- print to configured output 'channels'
+        local formatValue = 0
         if not source or showGroupLoot then
             local formattedValue = LA.Util.MoneyToString(singleItemValue) or 0
             local qtyValue = 0
@@ -1215,6 +1217,19 @@ function private.IncNoteworthyItemCounter(quantity, source)
 
     LA.Debug.Log("    noteworthy items counter: add " .. tostring(quantity) ..
                      " -> new total: " .. tostring(noteworthyItemCounter))
+end
+
+-- increase the wow token percentage
+function private.IncWoWTokenPercentage(source)
+    if source then return end
+
+    local wowToken = C_WowTokenPublic.GetCurrentMarketPrice()
+    local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
+    local percentage = totalItemValue / wowToken * 100
+
+    LA.Session.SetCurrentSession("wowTokenPercentage", percentage)
+
+    LA.Debug.Log("  WoW token price: " .. tostring(wowToken) .. ", totelItemValue: " .. tostring(totalItemValue) .. ", percentage: " .. percentage)
 end
 
 function private.sellGrayItemsToVendor()

@@ -939,6 +939,25 @@ local options = {
                                     desc = "Show the currency made from selling gray items to vendors.",
                                     width = "double"
                                 },
+                                showWoWTokenPercentage = {
+                                    type = "toggle",
+                                    order = 74,
+                                    name = "Show WoW Token price percentage",
+                                    desc = "Show the percentage of a WoW Token farmed.",
+                                    width = "double",
+                                    set = function(info, value)
+                                        local oldValue =
+                                            LA.db.profile.display[info[#info]]
+                                        if oldValue ~= value then
+                                            LA:Print(
+                                                "WoW Token Alerting: " ..
+                                                    Config.FormatBoolean(value) ..
+                                                    ".")
+                                        end
+                                        LA.db.profile.display[info[#info]] =
+                                            value;
+                                    end
+                                },
                                 resetInstanzeHeader = {
                                     order = 75,
                                     type = "header",

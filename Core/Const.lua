@@ -139,7 +139,8 @@ CONST.DB_DEFAULTS = {
             showLootedItemValueGroup = false,
             showLootedItemValueGroupPerHour = false,
             addGroupDropsToLootedItemList = false,
-            showGroupLootAlerts = true -- new value for opting-out of seeing group/party loot alerts
+            showGroupLootAlerts = true, -- new value for opting-out of seeing group/party loot alerts
+            showWoWTokenPercentage = false
         },
         sessionData = {groupBy = "datetime"}
     },

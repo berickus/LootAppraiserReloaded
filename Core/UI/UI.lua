@@ -602,6 +602,10 @@ function UI.PrepareDataContainer(parent)
     -- ...noteworthy item counter
     local noteworthyItemCounterUI = private.DefineRowForFrame(dataContainer, "showNoteworthyItems", "Noteworthy Items:", LA.Session.GetCurrentSession("noteworthyItemCounter") or 0)
     parent:SetUserData("data_noteworthyItemCounter", noteworthyItemCounterUI)
+
+    -- ...WoW token percentage
+    local wowTokenPercentageUI = private.DefineRowForFrame(dataContainer, "showWoWTokenPercentage", "WoW Token Percentage:", LA.Session.GetCurrentSession("wowTokenPercentage") or 0)
+    parent:SetUserData("data_wowTokenPercentage", wowTokenPercentageUI)
     -- group loot
 
     -- ...looted item value (with liv/h)
@@ -756,6 +760,14 @@ function UI.RefreshUIs()
     if LA.GetFromDb("display", "showNoteworthyItems") and noteworthyItemCounterUI then
         -- add to main ui
         noteworthyItemCounterUI:SetText(LA.Session.GetCurrentSession("noteworthyItemCounter") or 0)
+    end
+
+    -- WoW token percentage
+    local wowTokenPercentageUI = private.MAIN_UI:GetUserData("data_wowTokenPercentage")
+    if LA.GetFromDb("display", "showWoWTokenPercentage") and wowTokenPercentageUI then
+        -- add to main ui
+        local formattedValue = (LA.Session.GetCurrentSession("wowTokenPercentage") or 0) .. " %"
+        wowTokenPercentageUI:SetText(formattedValue)
     end
 
     -- group: looted item value

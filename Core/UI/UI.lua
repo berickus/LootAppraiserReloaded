@@ -248,7 +248,7 @@ function UI.ShowMainWindow(showMainUI)
 
     -- Request the initial market price update
     C_WowTokenPublic.UpdateMarketPrice()
-    LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
+    C_Timer.After(2,function () WoWToken = LA.UI.WOW_TOKEN.GetCurrentMarketPrice() LA.Debug.Log("WoWToken price loaded: " .. WoWToken) end)
 	
     private.MAIN_UI.frame:SetScript("OnUpdate",
         function(event, elapsed)

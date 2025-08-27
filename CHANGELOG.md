@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.3
+### Changed
+- Fixed price loading
+
 ## v2.3.2
 ### Changed
 - Fixed price loading

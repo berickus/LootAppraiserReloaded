@@ -261,7 +261,8 @@ function LA:OnEnable()
     -- register event for...
     -- ...looting items (new loot tracking logic)
     LA:RegisterEvent("CHAT_MSG_LOOT", private.OnChatMsgEvents)
-    LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT", private.OnTradeSkillEvents)
+    LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT",
+                     private.OnTradeSkillEvents)
 
     -- ...looting currency
     LA:RegisterEvent("CHAT_MSG_MONEY", private.OnChatMsgMoney)
@@ -479,9 +480,7 @@ function private.OnTradeSkillEvents(event, data)
     -- pause? restart session
     if LA.Session.IsPaused() then LA.Session.Restart() end
 
-    if LA.GetFromDb("notification", "trackCrafts") == false then
-        return
-    end
+    if LA.GetFromDb("notification", "trackCrafts") == false then return end
 
     -- self
     local loottype, itemLink, quantity, source
@@ -496,15 +495,15 @@ function private.OnTradeSkillEvents(event, data)
 
     if loottype then
         LA.Debug.Log("#### type=%s; itemLink=%s; quantity=%s", loottype,
-                        tostring(itemLink), tostring(quantity))
+                     tostring(itemLink), tostring(quantity))
         LA.Debug.Log("----source: " .. tostring(source))
 
         if not itemLink or not quantity then
             LA.Debug.Log("#### ignore event! data: " .. data .. ", type=" ..
-                                tostring(loottype))
-            LA.Debug.Log("   itemLink=" .. tostring(itemLink) ..
-                                "; quantity=" .. tostring(quantity) ..
-                                "; source=" .. tostring(source) .. ")")
+                             tostring(loottype))
+            LA.Debug.Log(
+                "   itemLink=" .. tostring(itemLink) .. "; quantity=" ..
+                    tostring(quantity) .. "; source=" .. tostring(source) .. ")")
             return
             -- this part cancels out and returns so never calls HandledItemLooted() below
         end
@@ -890,7 +889,7 @@ function private.HandleItemLooted(itemLink, itemID, quantity, source)
     private.IncLootedItemCounter(quantity, source) -- increase looted item counter
     private.AddItemValue2LootedItemValue(itemValue, source) -- add item value
     private.IncWoWTokenPercentage(source)
-    
+
     if addItem2List == true then
         itemValue = singleItemValue
         LA.Debug.Log("itemValue: " .. tostring(itemValue))
@@ -1225,11 +1224,17 @@ function private.IncWoWTokenPercentage(source)
 
     local wowToken = LA.UI.GetTokenPrice()
     local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
-    local percentage = totalItemValue / wowToken * 100
 
-    LA.Session.SetCurrentSession("wowTokenPercentage", percentage)
-
-    LA.Debug.Log("  WoW token price: " .. tostring(wowToken) .. ", totelItemValue: " .. tostring(totalItemValue) .. ", percentage: " .. percentage)
+    if wowToken and wowToken > 0 then
+        local percentage = totalItemValue / wowToken * 100
+        LA.Session.SetCurrentSession("wowTokenPercentage", percentage)
+        LA.Debug.Log(" WoW token price: " .. tostring(wowToken) ..
+                         ", totalItemValue: " .. tostring(totalItemValue) ..
+                         ", percentage: " .. percentage)
+    else
+        LA.Debug.Log(
+            "WoW token price unavailable, skipping token percentage update.")
+    end
 end
 
 function private.sellGrayItemsToVendor()

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.5
+### Changed
+- Improved resilience, thanks to Brrserker
+
 ## v2.3.4
 ### Changed
 - Fixed typo

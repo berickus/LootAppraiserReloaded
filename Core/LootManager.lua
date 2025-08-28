@@ -34,16 +34,21 @@ function LogLoot(itemID, itemLink, itemValue)
     LALoot.global.session = (hour .. ":" .. minute)
 
     -- add zone details 
+    local zoneInfo
     local currentMapID = C_Map.GetBestMapForUnit("player")
-    LA.Debug.Log("currentMapID: " .. currentMapID)
-    local zoneInfo = C_Map.GetMapInfo(currentMapID)
-    LA.Debug.Log("zoneInfo: " .. zoneInfo.name)
-    zoneInfo = zoneInfo and zoneInfo.name
+    if currentMapID then
+        LA.Debug.Log("currentMapID: " .. currentMapID)
+        zoneInfo = C_Map.GetMapInfo(currentMapID)
+        LA.Debug.Log("zoneInfo: " .. zoneInfo.name)
+        zoneInfo = zoneInfo and zoneInfo.name
+    else
+        zoneInfo = {name = "Unknown"}
+        LA.Debug.Log("Unknown location!")
+    end
 
     -- add looted items from session and location
     LALoot.global.location = zoneInfo
     local newLoot = (itemID .. "," .. itemValue .. "," .. itemLink)
     local curLoot = LALoot.global.loot
     LALoot.global.loot = (newLoot .. "\n" .. curLoot)
-
 end

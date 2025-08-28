@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.6
+### Changed
+- Fixed error when location is unknown like at the start of a delve or in the ethereal portal room
+
 ## v2.3.5
 ### Changed
 - Improved resilience, thanks to Brrserker

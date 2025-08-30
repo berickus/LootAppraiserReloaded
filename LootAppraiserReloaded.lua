@@ -46,6 +46,23 @@ LOOTMANAGER["Player"] = "" -- will hold the player's toon's name
 LOOTMANAGER["LootSession"] = "" -- will hold the sessions
 LOOTMANAGER["LootedItems"] = "" -- will hold what was looted
 
+local function tooltip_draw(isAddonCompartment, blizzardTooltip)
+  local tooltip
+  if isAddonCompartment then
+    tooltip = blizzardTooltip
+  else
+    tooltip = GameTooltip
+  end
+
+  tooltip:AddDoubleLine(LA.CONST.METADATA.NAME, versionString)
+  tooltip:AddLine(" ")
+  tooltip:AddLine("|cffff8040Left-Click|r to open the main window")
+  tooltip:AddLine("|cffff8040Right-Click|r to open options window")
+  tooltip:Show()
+end
+
+LA.GenerateTooltip = tooltip_draw;
+
 function LA_API.RegisterModule(theModule)
     LA.Debug.Log("RegisterModule")
     LA.Debug.TableToString(theModule)
@@ -239,6 +256,47 @@ function LA:OnInitialize()
     else
         LA.icon:Hide(LA.CONST.METADATA.NAME)
     end
+
+    AddonCompartmentFrame:RegisterAddon({
+        text = LA.CONST.METADATA.NAME,
+        icon = "Interface\\Icons\\inv_scroll_11",
+        registerForAnyClick = true,
+        notCheckable = true,
+        func = function(button, menuInputData, menu)
+            local mouseButton = menuInputData.buttonName
+            if mouseButton == "LeftButton" then
+                local isShiftKeyDown = IsShiftKeyDown()
+                if isShiftKeyDown then
+                    local callback = private.GetMinimapIconModulCallback(
+                                         "LeftButton", "Shift")
+                    if callback then callback() end
+                else
+                    if not LA.Session.IsRunning() then
+                        LA.Session.Start(true)
+                    end
+
+                    LA.UI.ShowMainWindow(true)
+                end
+            elseif mouseButton == "RightButton" then
+                local isShiftKeyDown = IsShiftKeyDown()
+                if isShiftKeyDown then
+                    local callback = private.GetMinimapIconModulCallback(
+                                         "RightButton", "Shift")
+                    if callback then callback() end
+                else
+                    LA.Debug.Log("Name: " .. LA.CONST.METADATA.NAME)
+                    Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+                    SettingsPanel.AddOnsTab:Click()
+                end
+            end
+        end,
+        funcOnEnter = function(button)
+            MenuUtil.ShowTooltip(button, function(tooltip)
+                LA.GenerateTooltip(true, tooltip)
+            end)
+        end,
+        funcOnLeave = function(button) MenuUtil.HideTooltip(button) end
+    })
 end
 
 function LA:OnEnable()

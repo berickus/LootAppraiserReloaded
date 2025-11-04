@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.8
+### Changed
+ - Add WOW Interface upload
+ - Updated interface version
+ - Updated Main UI Frame name to LAMainFrame in the global variables
+
 ## v2.3.7
 ### Changed
  - Addon compartment added

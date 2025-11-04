@@ -140,7 +140,7 @@ local dataobj = ldb:NewDataObject("LootedItemValue", {
         end
     end
 })
-local f = CreateFrame("frame")
+local f = CreateFrame("Frame")
 f:SetScript("OnUpdate", function(self, elap)
     elapsed = elapsed + elap
     if elapsed < UPDATEPERIOD then return end

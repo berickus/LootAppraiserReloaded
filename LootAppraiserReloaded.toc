@@ -1,4 +1,4 @@
-## Interface: 110200
+## Interface: 110205
 ## Title: LootAppraiser Reloaded
 ## Notes: An addon which keeps track of looted items and relative AH value.
 ## Author: Berickus
@@ -9,6 +9,7 @@
 ## IconTexture: Interface\AddOns\LootAppraiserReloaded\Media\icon.blp
 ## X-Curse-Project-ID: 1084464
 ## X-Wago-ID: Q6aEwg6W
+## X-WoWI-ID: 26962
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.xml

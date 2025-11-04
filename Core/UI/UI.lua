@@ -239,8 +239,8 @@ function UI.ShowMainWindow(showMainUI)
         return
     end
 
-    -- private.MAIN_UI = AceGUI:Create("Window")
     private.MAIN_UI = AceGUI:Create("Frame")
+    _G.LAMainFrame = private.MAIN_UI
     private.MAIN_UI:Hide()
     private.MAIN_UI:SetStatusTable(LA.db.profile.mainUI)
     private.MAIN_UI:SetTitle(LA.CONST.METADATA.NAME .. " " ..

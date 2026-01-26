@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.9
+### Changed
+ - Updated interface version
+
 ## v2.3.8
 ### Changed
  - Add WOW Interface upload

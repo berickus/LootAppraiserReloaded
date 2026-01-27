@@ -47,18 +47,18 @@ LOOTMANAGER["LootSession"] = "" -- will hold the sessions
 LOOTMANAGER["LootedItems"] = "" -- will hold what was looted
 
 local function tooltip_draw(isAddonCompartment, blizzardTooltip)
-  local tooltip
-  if isAddonCompartment then
-    tooltip = blizzardTooltip
-  else
-    tooltip = GameTooltip
-  end
+    local tooltip
+    if isAddonCompartment then
+        tooltip = blizzardTooltip
+    else
+        tooltip = GameTooltip
+    end
 
-  tooltip:AddDoubleLine(LA.CONST.METADATA.NAME, versionString)
-  tooltip:AddLine(" ")
-  tooltip:AddLine("|cffff8040Left-Click|r to open the main window")
-  tooltip:AddLine("|cffff8040Right-Click|r to open options window")
-  tooltip:Show()
+    tooltip:AddDoubleLine(LA.CONST.METADATA.NAME, versionString)
+    tooltip:AddLine(" ")
+    tooltip:AddLine("|cffff8040Left-Click|r to open the main window")
+    tooltip:AddLine("|cffff8040Right-Click|r to open options window")
+    tooltip:Show()
 end
 
 LA.GenerateTooltip = tooltip_draw;
@@ -134,8 +134,14 @@ local dataobj = ldb:NewDataObject("LootedItemValue", {
                                      "RightButton", "Shift")
                 if callback then callback() end
             else
-                Settings.OpenToCategory(LA.CONST.METADATA.NAME)
-                SettingsPanel.AddOnsTab:Click()
+                if LA.configFrameID then
+                    Settings.OpenToCategory(LA.configFrameID)
+                    SettingsPanel.AddOnsTab:Click()
+                else
+                    -- Fallback: try to find by name
+                    Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+                    SettingsPanel.AddOnsTab:Click()
+                end
             end
         end
     end
@@ -173,7 +179,7 @@ function LA:OnInitialize()
                                                                       .METADATA
                                                                       .NAME, {
         type = "launcher",
-        text = "LootAppraiser Reloaded", -- used as a label to load LA from datatext panels with UI addons like ElvUI (datatext panel)
+        text = LA.CONST.METADATA.NAME, -- used as a label to load LA from datatext panels with UI addons like ElvUI (datatext panel)
         icon = "Interface\\Icons\\Ability_Racial_PackHobgoblin",
 
         OnClick = function(self, button, down)
@@ -197,9 +203,14 @@ function LA:OnInitialize()
                                          "RightButton", "Shift")
                     if callback then callback() end
                 else
-                    LA.Debug.Log("Name: " .. LA.CONST.METADATA.NAME)
-                    Settings.OpenToCategory(LA.CONST.METADATA.NAME)
-                    SettingsPanel.AddOnsTab:Click()
+                    if LA.configFrameID then
+                        Settings.OpenToCategory(LA.configFrameID)
+                        SettingsPanel.AddOnsTab:Click()
+                    else
+                        -- Fallback: try to find by name
+                        Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+                        SettingsPanel.AddOnsTab:Click()
+                    end
                 end
             end
         end,

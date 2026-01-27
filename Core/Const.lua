@@ -1,5 +1,5 @@
 local LA = LibStub("AceAddon-3.0"):NewAddon(select(2, ...),
-                                            "LootAppraiserReloaded",
+                                            "LootAppraiser Reloaded",
                                             "AceConsole-3.0", "AceEvent-3.0",
                                             "LibSink-2.0") -- "AceHook-3.0",
 

@@ -473,7 +473,7 @@ local options = {
     args = {
         general = {
             type = "group",
-            name = "LootAppraiser Reloaded " .. LA.CONST.METADATA.VERSION,
+            name = LA.CONST.METADATA.NAME .. " " .. LA.CONST.METADATA.VERSION,
             childGroups = "tab",
             get = function(info) return LA.db.profile[info[#info]] end,
             set = function(info, value)
@@ -1295,13 +1295,11 @@ function Config:OnEnable()
     LSM:Register("sound", "Ready Check", 567409) -- ReadyCheck
 
     -- general LootAppraiserReloaded configuration
-    AceConfigRegistry:RegisterOptionsTable("LootAppraiser Reloaded",
+    AceConfigRegistry:RegisterOptionsTable(LA.CONST.METADATA.NAME,
                                            options.args.general)
-    -- AceConfigRegistry:RegisterOptionsTable("LootAppraiserReloaded Statistic", options.args.statistic, "LootAppraiserReloaded")
 
-    local LootAppraiserReloadedConfig = AceConfigDialog:AddToBlizOptions(
-                                            "LootAppraiser Reloaded")
-    LootAppraiserReloadedConfig.default = private.resetDB -- add reset function
+    LA.configFrame, LA.configFrameID = AceConfigDialog:AddToBlizOptions(LA.CONST.METADATA.NAME, LA.CONST.METADATA.NAME)
+    LA.configFrame.default = private.resetDB -- add reset function
 
     -- Fix sink config options
     options.args.general.args.notificationOptionsGrp.args.notificationLibSink
@@ -1319,7 +1317,7 @@ function private.resetDB()
 
     LA.db:ResetProfile(false, true)
 
-    AceConfigRegistry:NotifyChange("LootAppraiser Reloaded")
+    AceConfigRegistry:NotifyChange(LA.CONST.METADATA.NAME)
 end
 
 function Config.FormatBoolean(flag)

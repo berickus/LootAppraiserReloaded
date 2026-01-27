@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.10
+### Changed
+ - Fixed option toggle
+
 ## v2.3.9
 ### Changed
  - Updated interface version

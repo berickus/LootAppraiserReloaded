@@ -1,1 +1,19 @@
 package-as: LootAppraiserReloaded
+
+enable-nolib-creation: no
+
+# Release channel: alpha, beta, or release
+release-type: release
+
+ignore:
+  - .git
+  - .github
+  - .gitignore
+  - .pkgmeta
+  - README.md
+  - CHANGELOG.md
+  - .vscode
+
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.12
+### Changed
+ - Improve pkgmeta and release workflow
+
 ## v2.3.11
 ### Changed
  - Added interface version for classic, anniversary, etc.

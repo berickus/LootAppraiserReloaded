@@ -13,24 +13,18 @@ on:
 
 jobs:
   release:
-    strategy:
-      matrix:
-        type: [retail]
-        include:
-          - type: retail
-            pkgmeta: .pkgmeta
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - uses: BigWigsMods/packager@master
-      with:
-        args: -g ${{matrix.type}} -m ${{matrix.pkgmeta}}
-      env:
-        CF_API_KEY: ${{ secrets.CF_API_KEY }}
-        GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}
-        WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+      - name: Package and release
+        uses: BigWigsMods/packager@v2
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WOWI_API_TOKEN: ${{ secrets.WOWI_API_TOKEN }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+          GITHUB_OAUTH: ${{ secrets.GITHUB_TOKEN }}

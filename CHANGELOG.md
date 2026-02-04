@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v2.3.11
+### Changed
+ - Added interface version for classic, anniversary, etc.
+
 ## v2.3.10
 ### Changed
  - Fixed option toggle

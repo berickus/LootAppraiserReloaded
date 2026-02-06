@@ -146,7 +146,17 @@ CONST.DB_DEFAULTS = {
     },
     global = {sessions = {}, drops = {}}
 }
-CONST.DB_LOOT = {global = {session = {}, location = {}, loot = {}}}
+CONST.DB_LOOT = {
+    global = {
+        dbVersion = 2,
+        sessions = {},
+        nextSessionID = 1,
+        -- Legacy fields kept for backwards compatibility
+        session = {},
+        location = {},
+        loot = {}
+    }
+}
 
 --[[  depricating this since item #s are no longer valid
 CONST.ITEM_FILTER_VENDOR = {

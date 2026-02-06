@@ -268,46 +268,52 @@ function LA:OnInitialize()
         LA.icon:Hide(LA.CONST.METADATA.NAME)
     end
 
-    AddonCompartmentFrame:RegisterAddon({
-        text = LA.CONST.METADATA.NAME,
-        icon = "Interface\\Icons\\inv_scroll_11",
-        registerForAnyClick = true,
-        notCheckable = true,
-        func = function(button, menuInputData, menu)
-            local mouseButton = menuInputData.buttonName
-            if mouseButton == "LeftButton" then
-                local isShiftKeyDown = IsShiftKeyDown()
-                if isShiftKeyDown then
-                    local callback = private.GetMinimapIconModulCallback(
-                                         "LeftButton", "Shift")
-                    if callback then callback() end
-                else
-                    if not LA.Session.IsRunning() then
-                        LA.Session.Start(true)
-                    end
+    if LA.Util.IsModern then
+        AddonCompartmentFrame:RegisterAddon({
+            text = LA.CONST.METADATA.NAME,
+            icon = "Interface\\Icons\\inv_scroll_11",
+            registerForAnyClick = true,
+            notCheckable = true,
+            func = function(button, menuInputData, menu)
+                local mouseButton = menuInputData.buttonName
+                if mouseButton == "LeftButton" then
+                    local isShiftKeyDown = IsShiftKeyDown()
+                    if isShiftKeyDown then
+                        local callback =
+                            private.GetMinimapIconModulCallback("LeftButton",
+                                                                "Shift")
+                        if callback then callback() end
+                    else
+                        if not LA.Session.IsRunning() then
+                            LA.Session.Start(true)
+                        end
 
-                    LA.UI.ShowMainWindow(true)
+                        LA.UI.ShowMainWindow(true)
+                    end
+                elseif mouseButton == "RightButton" then
+                    local isShiftKeyDown = IsShiftKeyDown()
+                    if isShiftKeyDown then
+                        local callback =
+                            private.GetMinimapIconModulCallback("RightButton",
+                                                                "Shift")
+                        if callback then callback() end
+                    else
+                        LA.Debug.Log("Name: " .. LA.CONST.METADATA.NAME)
+                        Settings.OpenToCategory(LA.CONST.METADATA.NAME)
+                        SettingsPanel.AddOnsTab:Click()
+                    end
                 end
-            elseif mouseButton == "RightButton" then
-                local isShiftKeyDown = IsShiftKeyDown()
-                if isShiftKeyDown then
-                    local callback = private.GetMinimapIconModulCallback(
-                                         "RightButton", "Shift")
-                    if callback then callback() end
-                else
-                    LA.Debug.Log("Name: " .. LA.CONST.METADATA.NAME)
-                    Settings.OpenToCategory(LA.CONST.METADATA.NAME)
-                    SettingsPanel.AddOnsTab:Click()
-                end
+            end,
+            funcOnEnter = function(button)
+                MenuUtil.ShowTooltip(button, function(tooltip)
+                    LA.GenerateTooltip(true, tooltip)
+                end)
+            end,
+            funcOnLeave = function(button)
+                MenuUtil.HideTooltip(button)
             end
-        end,
-        funcOnEnter = function(button)
-            MenuUtil.ShowTooltip(button, function(tooltip)
-                LA.GenerateTooltip(true, tooltip)
-            end)
-        end,
-        funcOnLeave = function(button) MenuUtil.HideTooltip(button) end
-    })
+        })
+    end
 end
 
 function LA:OnEnable()
@@ -321,6 +327,7 @@ function LA:OnEnable()
     LA:RegisterChatCommand("laa", private.chatCmdGoldAlertTresholdMonitor)
     LA:RegisterChatCommand("lade", private.chatCmdUseDisenchantValueStatus)
     LA:RegisterChatCommand("laconfig", private.chatCmdShowConfig)
+    LA.Commands.Register()
     -- LA:RegisterChatCommand("lanw", private.chatCmdShowNotewortyItemsUI)
 
     -- register event for reset instance
@@ -330,8 +337,10 @@ function LA:OnEnable()
     -- register event for...
     -- ...looting items (new loot tracking logic)
     LA:RegisterEvent("CHAT_MSG_LOOT", private.OnChatMsgEvents)
-    LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT",
-                     private.OnTradeSkillEvents)
+    if LA.Util.IsModern then
+        LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT",
+                         private.OnTradeSkillEvents)
+    end
 
     -- ...looting currency
     LA:RegisterEvent("CHAT_MSG_MONEY", private.OnChatMsgMoney)
@@ -957,7 +966,7 @@ function private.HandleItemLooted(itemLink, itemID, quantity, source)
 
     private.IncLootedItemCounter(quantity, source) -- increase looted item counter
     private.AddItemValue2LootedItemValue(itemValue, source) -- add item value
-    private.IncWoWTokenPercentage(source)
+    if LA.Util.IsModern then private.IncWoWTokenPercentage(source) end
 
     if addItem2List == true then
         itemValue = singleItemValue

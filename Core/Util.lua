@@ -3,6 +3,24 @@ local LA = select(2, ...)
 local Util = {}
 LA.Util = Util
 
+local tocVersion = select(4, GetBuildInfo())  -- Returns TOC version (e.g., 110205)
+Util.TOCVersion = tocVersion
+
+-- Classic Versions (check first - more specific)
+Util.IsClassicEra = (tocVersion < 20000)                         -- Classic Era (1.x)
+Util.IsTBCClassic = (tocVersion >= 20000 and tocVersion < 30000)   -- TBC Classic (2.x) - legacy
+Util.IsWrathClassic = (tocVersion >= 30000 and tocVersion < 40000) -- Wrath Classic (3.x) - legacy
+Util.IsCataClassic = (tocVersion >= 40000 and tocVersion < 50000) -- Cata Classic (4.x) - legacy
+Util.IsMoPClassic = (tocVersion >= 50000 and tocVersion < 60000) -- MoP Classic (5.x)
+Util.IsClassic = Util.IsClassicEra or Util.IsMoPClassic or Util.IsCataClassic or Util.IsWrathClassic or Util.IsTBCClassic
+
+-- Retail Expansions
+Util.IsRetail = (tocVersion >= 100000)                           -- Dragonflight+ (10.x+)
+Util.IsTWW = (tocVersion >= 110200 and tocVersion < 120000)      -- The War Within (11.x)
+Util.IsMidnight = (tocVersion >= 120000)
+
+Util.IsModern = Util.IsRetail or Util.IsTWW or Util.IsMidnight
+
 -- lua api
 local abs, floor, string, pairs, table, tonumber = abs, floor, string, pairs,
                                                    table, tonumber

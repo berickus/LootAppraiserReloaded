@@ -525,7 +525,7 @@ local options = {
                         trackCrafts = {
                             type = "toggle",
                             order = 350,
-                            name = "Enable Tradeskill Tracking",
+                            name = "Enable Tradeskill Tracking (retail only)",
                             desc = "Enable Tradeskill Tracking",
                             width = "double",
                             set = function(info, value)
@@ -942,7 +942,7 @@ local options = {
                                 showWoWTokenPercentage = {
                                     type = "toggle",
                                     order = 74,
-                                    name = "Show WoW Token price percentage",
+                                    name = "Show WoW Token price percentage (retail only)",
                                     desc = "Show the percentage of a WoW Token farmed.",
                                     width = "double",
                                 },
@@ -1107,6 +1107,102 @@ local options = {
                                     desc = "reset the position of all loot appraiser frames (or /la freset)",
                                     func = function()
                                         LA.UI.ResetFrames()
+                                    end
+                                }
+                            },
+                            plugins = {}
+                        },
+                        sessionHistoryOptions = {
+                            type = "group",
+                            order = 50,
+                            name = "Session History",
+                            hidden = false,
+                            inline = true,
+                            args = {
+                                sessionHistoryDesc = {
+                                    type = "description",
+                                    order = 1,
+                                    fontSize = "medium",
+                                    name = "Session history allows you to save and review past farming sessions. Use |cff00ff00/lahistory|r to open the session history window.",
+                                    width = "full"
+                                },
+                                openSessionHistoryButton = {
+                                    type = "execute",
+                                    order = 10,
+                                    name = "Open Session History",
+                                    desc = "Open the session history window (or /lahistory)",
+                                    func = function()
+                                        if LA.SessionHistoryUI then
+                                            LA.SessionHistoryUI.Show()
+                                        end
+                                    end
+                                },
+                                saveCurrentSessionButton = {
+                                    type = "execute",
+                                    order = 20,
+                                    name = "Save Current Session",
+                                    desc = "Save the current active session to history",
+                                    func = function()
+                                        if LA.Session.IsRunning() then
+                                            LA.SessionHistory.SaveCurrentSession()
+                                        else
+                                            LA:Print("No active session to save.")
+                                        end
+                                    end
+                                },
+                                exportAllSessionsButton = {
+                                    type = "execute",
+                                    order = 30,
+                                    name = "Export All Sessions",
+                                    desc = "Export all sessions to CSV format (or /lahistory export)",
+                                    func = function()
+                                        if LA.SessionHistory then
+                                            local csv, err = LA.SessionHistory.ExportAllSessionsToCSV()
+                                            if csv then
+                                                local AceGUI = LibStub("AceGUI-3.0")
+                                                local exportFrame = AceGUI:Create("Frame")
+                                                exportFrame:SetTitle("Export All Sessions")
+                                                exportFrame:SetWidth(600)
+                                                exportFrame:SetHeight(400)
+                                                exportFrame:SetLayout("Fill")
+                                                
+                                                local editBox = AceGUI:Create("MultiLineEditBox")
+                                                editBox:SetLabel("CSV Data (select all and copy with Ctrl+C):")
+                                                editBox:SetText(csv)
+                                                editBox:SetFullWidth(true)
+                                                editBox:SetFullHeight(true)
+                                                editBox:DisableButton(true)
+                                                exportFrame:AddChild(editBox)
+                                                
+                                                LA:Print("CSV export ready. Select all and copy (Ctrl+A, Ctrl+C)")
+                                            else
+                                                LA:Print("Export failed: " .. (err or "No sessions to export"))
+                                            end
+                                        end
+                                    end
+                                },
+                                resetSessionHistoryButton = {
+                                    type = "execute",
+                                    order = 40,
+                                    name = "|cffff0000Reset All History|r",
+                                    desc = "WARNING: This will permanently delete ALL session history! (or /lahistory reset)",
+                                    func = function()
+                                        StaticPopupDialogs["LA_RESET_ALL_SESSIONS_CONFIG"] = {
+                                            text = "|cffff0000Warning!|r\n\nThis will permanently delete ALL session history.\n\nAre you sure you want to continue?",
+                                            button1 = "Yes, Reset All",
+                                            button2 = "Cancel",
+                                            OnAccept = function()
+                                                if LA.SessionHistory then
+                                                    local count = LA.SessionHistory.ResetAllSessions()
+                                                    LA:Print("Session history reset. Deleted " .. count .. " session(s).")
+                                                end
+                                            end,
+                                            timeout = 0,
+                                            whileDead = true,
+                                            hideOnEscape = true,
+                                            preferredIndex = 3
+                                        }
+                                        StaticPopup_Show("LA_RESET_ALL_SESSIONS_CONFIG")
                                     end
                                 }
                             },

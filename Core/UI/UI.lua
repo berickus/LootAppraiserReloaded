@@ -251,12 +251,14 @@ function UI.ShowMainWindow(showMainUI)
     private.MAIN_UI:EnableResize(false)
     private.MAIN_UI.frame:SetClampedToScreen(true)
 
-    -- Request the initial market price update
-    C_WowTokenPublic.UpdateMarketPrice()
-    C_Timer.After(2, function()
-        LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
-        LA.Debug.Log("WoWToken price loaded: " .. LA.UI.WOW_TOKEN)
-    end)
+    if LA.Util.IsModern then
+        -- Request the initial market price update
+        C_WowTokenPublic.UpdateMarketPrice()
+        C_Timer.After(2, function()
+            LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
+            LA.Debug.Log("WoWToken price loaded: " .. LA.UI.WOW_TOKEN)
+        end)
+    end
 
     private.MAIN_UI.frame:SetScript("OnUpdate", function(event, elapsed)
         mainUItotal = mainUItotal + elapsed
@@ -276,14 +278,16 @@ function UI.ShowMainWindow(showMainUI)
             end
         end
 
-        updateTimer = updateTimer + elapsed
-        if updateTimer >= 900 then -- ⏳ Updating every 15 min
-            C_WowTokenPublic.UpdateMarketPrice()
-            C_Timer.After(2,
-                          function() -- 🔹 Wait 2 seconds before updating display
-                LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
-            end)
-            updateTimer = 0
+        if LA.Util.IsModern then
+            updateTimer = updateTimer + elapsed
+            if updateTimer >= 900 then -- ⏳ Updating every 15 min
+                C_WowTokenPublic.UpdateMarketPrice()
+                C_Timer.After(2,
+                              function() -- 🔹 Wait 2 seconds before updating display
+                    LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
+                end)
+                updateTimer = 0
+            end
         end
     end)
 
@@ -633,15 +637,17 @@ function UI.PrepareDataContainer(parent)
                                                                   0)
     parent:SetUserData("data_noteworthyItemCounter", noteworthyItemCounterUI)
 
-    -- ...WoW token percentage
-    local wowTokenPercentageUI = private.DefineRowForFrame(dataContainer,
-                                                           "showWoWTokenPercentage",
-                                                           "WoW Token Percentage:",
-                                                           LA.Session
-                                                               .GetCurrentSession(
-                                                               "wowTokenPercentage") or
-                                                               0)
-    parent:SetUserData("data_wowTokenPercentage", wowTokenPercentageUI)
+    if LA.Util.IsModern then
+        -- ...WoW token percentage
+        local wowTokenPercentageUI = private.DefineRowForFrame(dataContainer,
+                                                               "showWoWTokenPercentage",
+                                                               "WoW Token Percentage:",
+                                                               LA.Session
+                                                                   .GetCurrentSession(
+                                                                   "wowTokenPercentage") or
+                                                                   0)
+        parent:SetUserData("data_wowTokenPercentage", wowTokenPercentageUI)
+    end
     -- group loot
 
     -- ...looted item value (with liv/h)
@@ -821,15 +827,17 @@ function UI.RefreshUIs()
                                             "noteworthyItemCounter") or 0)
     end
 
-    -- WoW token percentage
-    local wowTokenPercentageUI = private.MAIN_UI:GetUserData(
-                                     "data_wowTokenPercentage")
-    if LA.GetFromDb("display", "showWoWTokenPercentage") and
-        wowTokenPercentageUI then
-        -- add to main ui
-        local formattedValue = (LA.Session.GetCurrentSession(
-                                   "wowTokenPercentage") or 0) .. " %"
-        wowTokenPercentageUI:SetText(formattedValue)
+    if LA.Util.IsModern then
+        -- WoW token percentage
+        local wowTokenPercentageUI = private.MAIN_UI:GetUserData(
+                                         "data_wowTokenPercentage")
+        if LA.GetFromDb("display", "showWoWTokenPercentage") and
+            wowTokenPercentageUI then
+            -- add to main ui
+            local formattedValue = (LA.Session.GetCurrentSession(
+                                       "wowTokenPercentage") or 0) .. " %"
+            wowTokenPercentageUI:SetText(formattedValue)
+        end
     end
 
     -- group: looted item value

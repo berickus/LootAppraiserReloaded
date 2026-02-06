@@ -159,7 +159,10 @@ function SessionHistory.SaveSession()
         },
         priceSource = currentSession.settings and currentSession.settings.priceSource or "Unknown",
         qualityFilter = currentSession.settings and currentSession.settings.qualityFilter or "1",
-        loot = private.currentSessionData and private.currentSessionData.loot or {}
+        loot = private.currentSessionData and private.currentSessionData.loot or {},
+        kills = currentSession.kills or {},
+        totalKills = currentSession.totalKills or 0,
+        uniqueKills = currentSession.uniqueKills or 0
     }
     
     -- Add to history
@@ -256,12 +259,12 @@ function SessionHistory.ExportAllCSV()
     return SessionHistory.GenerateCSV(sessions)
 end
 
--- Generate CSV string from sessions
+-- Generate CSV string from sessions (unified export: session data + kill details)
 function SessionHistory.GenerateCSV(sessions)
     local lines = {}
     
     -- Header
-    table.insert(lines, "Session ID,Session Name,Start Time,End Time,Duration (min),Zone,Player,Total Value (gold),Item Count,Noteworthy Count,Currency Looted (gold),Vendor Sales (gold),Price Source,Quality Filter")
+    table.insert(lines, "Session ID,Session Name,Start Time,End Time,Duration (min),Zone,Player,Total Value (gold),Item Count,Noteworthy Count,Currency Looted (gold),Vendor Sales (gold),Total Kills,Unique NPCs,Kill Details,Price Source,Quality Filter")
     
     for _, session in ipairs(sessions) do
         local startDate = date("%Y-%m-%d %H:%M:%S", session.startTime)
@@ -277,7 +280,26 @@ function SessionHistory.GenerateCSV(sessions)
             name = '"' .. name .. '"'
         end
         
-        local line = string.format('%d,%s,%s,%s,%d,%s,%s,%d,%d,%d,%d,%d,%s,%s',
+        -- Build kill details string: "NpcName x3 | OtherNpc x7 | ..."
+        local killDetails = ""
+        local kills = session.kills
+        if kills and next(kills) then
+            local sorted = {}
+            for npcID, data in pairs(kills) do
+                sorted[#sorted + 1] = { name = data.name, count = data.count }
+            end
+            table.sort(sorted, function(a, b) return a.count > b.count end)
+            
+            local parts = {}
+            for _, entry in ipairs(sorted) do
+                parts[#parts + 1] = (entry.name or "Unknown") .. " x" .. entry.count
+            end
+            killDetails = table.concat(parts, " | ")
+        end
+        -- Wrap in quotes since it may contain special chars
+        killDetails = '"' .. killDetails:gsub('"', '""') .. '"'
+        
+        local line = string.format('%d,%s,%s,%s,%d,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s,%s,%s',
             session.id or 0,
             name,
             startDate,
@@ -290,6 +312,9 @@ function SessionHistory.GenerateCSV(sessions)
             session.noteworthyCount or 0,
             currencyGold,
             vendorGold,
+            session.totalKills or 0,
+            session.uniqueKills or 0,
+            killDetails,
             (session.priceSource or "Unknown"):gsub(",", ";"),
             session.qualityFilter or "1"
         )

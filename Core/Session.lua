@@ -21,7 +21,14 @@ local time, tonumber = time, tonumber
 
 function Session.New()
     LA.Debug.Log("NewSession")
+    
+    -- Save the current session to history before starting a new one
+    if private.sessionIsRunning and private.currentSession then
+        LA.SessionHistory.SaveSession()
+    end
+    
     private.PrepareNewSession()
+    LA.SessionHistory.StartTracking()
     LA.UI.ClearLootCollectedList()
     LA.UI.ClearLastNoteworthyItemUI()
     LA.UI.RefreshUIs()
@@ -68,6 +75,7 @@ function Session.Start(showMainUI)
 
         private.sessionIsRunning = true
         private.PrepareNewSession()
+        LA.SessionHistory.StartTracking()
 
         -- show main window
         LA.UI.ShowMainWindow(showMainUI)
@@ -107,6 +115,9 @@ function private.PrepareNewSession()
             priceSource = LA.GetFromDb("pricesource", "source")
         },
         noteworthyItems = {},
+        kills = {},
+        totalKills = 0,
+        uniqueKills = 0,
         liv = 0,
         vendorSoldCurrencyUI = 0,
         livGroup = 0,

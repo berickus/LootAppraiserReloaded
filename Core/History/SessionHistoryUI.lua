@@ -80,26 +80,7 @@ function private.CreateUI()
         private.HISTORY_UI:Hide()
     end)
     
-    -- Info label
-    local infoLabel = AceGUI:Create("Label")
-    infoLabel:SetText("|cffaaaaaa" .. "Left-click to rename session | Right-click to export as CSV" .. "|r")
-    infoLabel:SetFullWidth(true)
-    private.HISTORY_UI:AddChild(infoLabel)
-    
-    -- Scroll frame for session list
-    local scrollContainer = AceGUI:Create("SimpleGroup")
-    scrollContainer:SetFullWidth(true)
-    scrollContainer:SetHeight(300)
-    scrollContainer:SetLayout("Fill")
-    private.HISTORY_UI:AddChild(scrollContainer)
-    
-    local scrollFrame = AceGUI:Create("ScrollFrame")
-    scrollFrame:SetLayout("List")
-    scrollContainer:AddChild(scrollFrame)
-    
-    private.HISTORY_UI:SetUserData("scrollFrame", scrollFrame)
-    
-    -- Button container
+    -- Button container (put buttons ABOVE the scroll so they always show)
     local buttonGroup = AceGUI:Create("SimpleGroup")
     buttonGroup:SetFullWidth(true)
     buttonGroup:SetLayout("Flow")
@@ -115,7 +96,7 @@ function private.CreateUI()
     btnExportAll:SetCallback("OnEnter", function(widget)
         GameTooltip:SetOwner(widget.frame, "ANCHOR_TOP")
         GameTooltip:AddLine("Export All Sessions")
-        GameTooltip:AddLine("|cffffffffExport all sessions to CSV format|r")
+        GameTooltip:AddLine("|cffffffffExport all session data (loot, kills, gold) to CSV|r")
         GameTooltip:Show()
     end)
     btnExportAll:SetCallback("OnLeave", function()
@@ -161,6 +142,25 @@ function private.CreateUI()
     countLabel:SetWidth(150)
     buttonGroup:AddChild(countLabel)
     private.HISTORY_UI:SetUserData("countLabel", countLabel)
+
+    -- Info label
+    local infoLabel = AceGUI:Create("Label")
+    infoLabel:SetText("|cffaaaaaa" .. "Left-click to rename | Right-click to export CSV" .. "|r")
+    infoLabel:SetFullWidth(true)
+    private.HISTORY_UI:AddChild(infoLabel)
+    
+    -- Scroll frame for session list (fills remaining space)
+    local scrollContainer = AceGUI:Create("SimpleGroup")
+    scrollContainer:SetFullWidth(true)
+    scrollContainer:SetFullHeight(true)
+    scrollContainer:SetLayout("Fill")
+    private.HISTORY_UI:AddChild(scrollContainer)
+    
+    local scrollFrame = AceGUI:Create("ScrollFrame")
+    scrollFrame:SetLayout("List")
+    scrollContainer:AddChild(scrollFrame)
+    
+    private.HISTORY_UI:SetUserData("scrollFrame", scrollFrame)
     
     -- Populate the list
     private.RefreshSessionList()
@@ -320,6 +320,37 @@ function private.ShowSessionTooltip(widget, session)
     end
     GameTooltip:AddDoubleLine("Item Count:", "|cffffffff" .. (session.itemCount or 0) .. "|r")
     
+    -- Kill stats
+    local totalKills = session.totalKills or 0
+    local uniqueKills = session.uniqueKills or 0
+    if totalKills > 0 then
+        GameTooltip:AddDoubleLine("Total Kills:", "|cffff4444" .. totalKills .. "|r")
+        GameTooltip:AddDoubleLine("Unique NPCs:", "|cffff4444" .. uniqueKills .. "|r")
+        
+        -- Show top 5 killed NPCs
+        local kills = session.kills
+        if kills and next(kills) then
+            local sorted = {}
+            for npcID, data in pairs(kills) do
+                sorted[#sorted + 1] = { name = data.name, count = data.count }
+            end
+            table.sort(sorted, function(a, b) return a.count > b.count end)
+            
+            GameTooltip:AddLine(" ")
+            GameTooltip:AddLine("|cffff8040Top Kills:|r")
+            local maxShow = math.min(#sorted, 5)
+            for i = 1, maxShow do
+                GameTooltip:AddDoubleLine(
+                    "  " .. sorted[i].name,
+                    "|cffffffff" .. "x" .. sorted[i].count .. "|r"
+                )
+            end
+            if #sorted > maxShow then
+                GameTooltip:AddLine("  |cffaaaaaa..." .. (#sorted - maxShow) .. " more|r")
+            end
+        end
+    end
+    
     -- Settings
     if session.settings then
         GameTooltip:AddLine(" ")
@@ -418,7 +449,10 @@ function private.ConfirmDeleteSession(session)
         hideOnEscape = true,
         preferredIndex = 3
     }
-    StaticPopup_Show("LA_DELETE_SESSION")
+    local popup = StaticPopup_Show("LA_DELETE_SESSION")
+    if popup then
+        popup:SetFrameStrata("FULLSCREEN_DIALOG")
+    end
 end
 
 --[[

@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.1.0
+### Changed
+ - Added kill tracker to the session history
+ - Fixed version shown
+
 ## v3.0.0
 ### Changed
  - Added session history (track, rename, export, etc.)

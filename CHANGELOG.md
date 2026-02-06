@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.0.0
+### Changed
+ - Added session history (track, rename, export, etc.)
+ - Fixed classic issues with not existing functions
+
 ## v2.3.12
 ### Changed
  - Improve pkgmeta and release workflow

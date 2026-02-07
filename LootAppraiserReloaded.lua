@@ -10,9 +10,7 @@
         Core/Events.lua         - WoW event handlers
         Core/LootProcessing.lua - Core loot item processing and notifications
         Core/Merchant.lua       - Vendor: sell grays, auto-repair
-]]
-
-local LA = select(2, ...)
+]] local LA = select(2, ...)
 
 local AceGUI = LibStub("AceGUI-3.0")
 
@@ -60,7 +58,8 @@ function LA:OnEnable()
         LA.UI.ShowLastNoteworthyItemWindow()
     end)
     LA:RegisterChatCommand("lade", function()
-        LA:Print(tostring(LA.GetFromDb("pricesource", "useDisenchantValue", "TSM_REQUIRED")))
+        LA:Print(tostring(LA.GetFromDb("pricesource", "useDisenchantValue",
+                                       "TSM_REQUIRED")))
     end)
     LA:RegisterChatCommand("laconfig", function()
         Settings.OpenToCategory(LA.CONST.METADATA.NAME)
@@ -75,11 +74,15 @@ function LA:OnEnable()
     LA:RegisterEvent("CHAT_MSG_MONEY", LA.Events.OnChatMsgMoney)
 
     if LA.Util.IsModern then
-        LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT", LA.Events.OnTradeSkillCrafted)
+        LA:RegisterEvent("TRADE_SKILL_ITEM_CRAFTED_RESULT",
+                         LA.Events.OnTradeSkillCrafted)
     end
 
-    -- Kill tracking via combat log
-    LA:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED", LA.KillTracker.OnCombatLogEvent)
+    if LA.Util.IsClassic then
+        -- Kill tracking via combat log
+        LA:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED",
+                         LA.KillTracker.OnCombatLogEvent)
+    end
 
     -- Register addon message prefix for group loot
     C_ChatInfo.RegisterAddonMessagePrefix(LA.CONST.PARTYLOOT_MSGPREFIX)
@@ -112,7 +115,8 @@ function LA:ShowStartSessionDialog()
     START_SESSION_PROMPT = AceGUI:Create("Frame")
     START_SESSION_PROMPT:SetStatusTable(self.db.profile.startSessionPromptUI)
     START_SESSION_PROMPT:SetLayout("Flow")
-    START_SESSION_PROMPT:SetTitle("Would you like to start a LootAppraiser Reloaded session?")
+    START_SESSION_PROMPT:SetTitle(
+        "Would you like to start a LootAppraiser Reloaded session?")
     START_SESSION_PROMPT:SetPoint("CENTER")
     START_SESSION_PROMPT:SetWidth(250)
     START_SESSION_PROMPT:SetHeight(115)
@@ -160,7 +164,10 @@ end
     Legacy compatibility wrappers
     These maintain backward compatibility with older code and modules
 --------------------------------------------------------------------------]]
-LA.METADATA = { VERSION = "2018." .. (LA.CONST and LA.CONST.METADATA and LA.CONST.METADATA.VERSION or "0") }
+LA.METADATA = {
+    VERSION = "2018." ..
+        (LA.CONST and LA.CONST.METADATA and LA.CONST.METADATA.VERSION or "0")
+}
 LA.QUALITY_FILTER = LA.CONST and LA.CONST.QUALITY_FILTER
 LA.PRICE_SOURCE = LA.CONST and LA.CONST.PRICE_SOURCE
 

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.1.1
+### Changed
+ - Fix addon error in midnight (remove kill track)
+
 ## v3.1.0
 ### Changed
  - Added kill tracker to the session history

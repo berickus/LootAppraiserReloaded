@@ -76,6 +76,7 @@ function Session.Start(showMainUI)
         private.sessionIsRunning = true
         private.PrepareNewSession()
         LA.SessionHistory.StartTracking()
+        LA.KillTracker.ResetCLEUState()
 
         -- show main window
         LA.UI.ShowMainWindow(showMainUI)

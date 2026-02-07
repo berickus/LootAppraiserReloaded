@@ -112,15 +112,16 @@ function SessionHistory.SaveSession()
         return
     end
     
-    -- Only save if there's actual data
+    -- Only save if there's actual data (loot, value, or kills)
     local totalValue = currentSession.liv or 0
     local itemCount = 0
     if private.currentSessionData and private.currentSessionData.loot then
         itemCount = #private.currentSessionData.loot
     end
+    local totalKills = currentSession.totalKills or 0
     
-    if totalValue == 0 and itemCount == 0 then
-        LA.Debug.Log("Session has no data, not saving")
+    if totalValue == 0 and itemCount == 0 and totalKills == 0 then
+        LA.Debug.Log("Session has no data (no loot, no value, no kills), not saving")
         return
     end
     
@@ -135,11 +136,29 @@ function SessionHistory.SaveSession()
     local pauseTime = LA.Session.GetSessionPause() or 0
     local duration = endTime - startTime - pauseTime
     
-    -- Create session record
-    local sessionID = LALoot.global.nextSessionID or 1
+    -- Check if this session was already saved (same startTime = same session)
+    local existingIndex = nil
+    local existingRecord = nil
+    for i, s in ipairs(LALoot.global.sessions) do
+        if s.startTime == startTime then
+            existingIndex = i
+            existingRecord = s
+            break
+        end
+    end
+    
+    -- Determine session ID (reuse existing or allocate new)
+    local sessionID
+    if existingRecord then
+        sessionID = existingRecord.id
+    else
+        sessionID = LALoot.global.nextSessionID or 1
+    end
+    
+    -- Create session record (preserve custom name if user renamed it)
     local sessionRecord = {
         id = sessionID,
-        name = "Session " .. sessionID,
+        name = (existingRecord and existingRecord.name) or ("Session " .. sessionID),
         startTime = startTime,
         endTime = endTime,
         duration = duration,
@@ -165,11 +184,15 @@ function SessionHistory.SaveSession()
         uniqueKills = currentSession.uniqueKills or 0
     }
     
-    -- Add to history
-    table.insert(LALoot.global.sessions, sessionRecord)
-    LALoot.global.nextSessionID = sessionID + 1
-    
-    LA.Debug.Log("Session saved with ID: " .. sessionID)
+    -- Update existing or add new session
+    if existingIndex then
+        LALoot.global.sessions[existingIndex] = sessionRecord
+        LA.Debug.Log("Session updated with ID: " .. sessionID)
+    else
+        table.insert(LALoot.global.sessions, sessionRecord)
+        LALoot.global.nextSessionID = sessionID + 1
+        LA.Debug.Log("Session saved with ID: " .. sessionID)
+    end
     
     -- Reset current session data
     private.currentSessionData = { loot = {} }

@@ -266,7 +266,7 @@ function private.CreateSessionRow(parent, session, index)
     -- Delete button
     local deleteBtn = AceGUI:Create("Button")
     deleteBtn:SetText("X")
-    deleteBtn:SetWidth(40)
+    deleteBtn:SetWidth(45)
     deleteBtn:SetCallback("OnClick", function()
         private.ConfirmDeleteSession(session)
     end)

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.1.2
+### Changed
+ - Reenable kill track for retail. (Does only work for single mob kills right now)
+
 ## v3.1.1
 ### Changed
  - Fix addon error in midnight (remove kill track)

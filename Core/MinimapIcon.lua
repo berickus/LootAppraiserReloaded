@@ -117,7 +117,7 @@ function MinimapIcon.SetupDataBroker()
         elapsed = 0
 
         local lootedItemValue = 0
-        local currentSession = LA:getCurrentSession()
+        local currentSession = LA.Session.GetCurrentSession()
         if currentSession ~= nil then
             lootedItemValue = currentSession["liv"] or 0
         end

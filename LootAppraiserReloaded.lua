@@ -78,10 +78,18 @@ function LA:OnEnable()
                          LA.Events.OnTradeSkillCrafted)
     end
 
+    -- Kill tracking: version-aware strategy
+    -- Classic: CLEU (PARTY_KILL) works fine
+    -- Retail 12.0+: CLEU is blocked. Primary tracking via TryTrackFromLoot()
+    --   called from Events.OnChatMsgLoot. Backup events below.
     if LA.Util.IsClassic then
-        -- Kill tracking via combat log
         LA:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED",
                          LA.KillTracker.OnCombatLogEvent)
+    else
+        -- Backup: LOOT_READY fires when loot window data is available
+        LA:RegisterEvent("LOOT_READY", LA.KillTracker.OnLootReady)
+        -- Count dead target/mouseover when leaving combat
+        LA:RegisterEvent("PLAYER_REGEN_ENABLED", LA.KillTracker.OnRegenEnabled)
     end
 
     -- Register addon message prefix for group loot
@@ -131,7 +139,7 @@ function LA:ShowStartSessionDialog()
     btnYes:SetAutoWidth(true)
     btnYes:SetText("Yes ")
     btnYes:SetCallback("OnClick", function()
-        LA:StartSession(openLootAppraiserReloaded)
+        LA.Session.Start(openLootAppraiserReloaded)
         START_SESSION_PROMPT:Release()
         START_SESSION_PROMPT = nil
     end)
@@ -159,24 +167,3 @@ function LA:ShowStartSessionDialog()
 
     START_SESSION_PROMPT.statustext:Hide()
 end
-
---[[------------------------------------------------------------------------
-    Legacy compatibility wrappers
-    These maintain backward compatibility with older code and modules
---------------------------------------------------------------------------]]
-LA.METADATA = {
-    VERSION = "2018." ..
-        (LA.CONST and LA.CONST.METADATA and LA.CONST.METADATA.VERSION or "0")
-}
-LA.QUALITY_FILTER = LA.CONST and LA.CONST.QUALITY_FILTER
-LA.PRICE_SOURCE = LA.CONST and LA.CONST.PRICE_SOURCE
-
-function LA:tablelength(t) return LA.Util.tablelength(t) end
-function LA:print_r(t) LA.Debug.TableToString(t) end
-function LA:D(msg, ...) LA.Debug.Log(msg, ...) end
-function LA:getCurrentSession() return LA.Session.GetCurrentSession() end
-function LA:StartSession(showMainUI) LA.Session.Start(showMainUI) end
-function LA:ShowMainWindow(showMainUI) LA.UI.ShowMainWindow(showMainUI) end
-function LA:NewSession() LA.Session.New() end
-function LA:pauseSession() LA.Session.Pause() end
-function LA:refreshStatusText() LA.UI.RefreshStatusText() end

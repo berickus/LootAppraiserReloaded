@@ -41,6 +41,12 @@ function Events.OnChatMsgLoot(event, msg)
     if LA.Session.IsPaused() then LA.Session.Restart() end
 
     if event == "CHAT_MSG_LOOT" then
+        -- Retail 12.0+: piggyback on loot event to track NPC kills
+        -- (CLEU is blocked, but CHAT_MSG_LOOT always fires when looting)
+        if LA.Util.IsModern and LA.KillTracker then
+            LA.KillTracker.TryTrackFromLoot()
+        end
+
         local loottype, itemLink, quantity, source
 
         if msg:match(PATTERN_LOOT_ITEM_SELF_MULTIPLE) then

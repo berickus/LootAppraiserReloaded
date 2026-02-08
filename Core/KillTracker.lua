@@ -3,14 +3,18 @@
     NPC kill tracking with version-aware strategy:
 
     CLASSIC:  COMBAT_LOG_EVENT_UNFILTERED → PARTY_KILL sub-event
+              Full access to combat log data.
 
-    RETAIL (12.0+):  CLEU is fully blocked. Instead we use:
-      1. TryTrackFromLoot() - Called from Events.OnChatMsgLoot when an item
-         is looted. Uses UnitGUID("npc")/UnitName("npc") to identify the
-         mob being looted. Most reliable path since CHAT_MSG_LOOT fires.
-      2. LOOT_READY - Backup event in case UnitGUID("npc") timing differs.
-      3. PLAYER_REGEN_ENABLED - Check target + mouseover when leaving combat
-         for kills where mobs aren't looted.
+    RETAIL (12.0+):  CLEU is fully blocked (RegisterEvent is protected).
+              Instead we use:
+        1. TryTrackFromLoot() - Called from Events.OnChatMsgLoot each time
+           an item is looted. Scans ALL loot slots via GetLootSourceInfo()
+           to collect every unique creature GUID — this is critical for
+           AoE looting where one loot window contains items from multiple
+           corpses. Also tries UnitGUID("npc") as a fast path.
+        2. LOOT_READY - Backup event, calls the same scan logic.
+        3. PLAYER_REGEN_ENABLED - When leaving combat, check target and
+           mouseover for dead NPCs (catches un-looted kills).
 
     Data stored in session:
         kills = { ["npcID"] = { name = "Kobold Miner", count = 3 }, ... }
@@ -43,6 +47,8 @@ local COMBATLOG_OBJECT_TYPE_NPC = COMBATLOG_OBJECT_TYPE_NPC or 0x00000800
 
 --[[------------------------------------------------------------------------
     Dedup tracking: prevent counting the same mob twice
+    Key = GUID, Value = GetTime() timestamp
+    Entries expire after DEDUP_WINDOW seconds.
 --------------------------------------------------------------------------]]
 local recentKills = {}
 local DEDUP_WINDOW = 120
@@ -82,6 +88,21 @@ function private.MarkCounted(guid)
     if guid then recentKills[guid] = GetTime() end
 end
 
+--[[------------------------------------------------------------------------
+    Safe pcall wrapper: returns the result or nil
+    Guards against secret values in 12.0+
+--------------------------------------------------------------------------]]
+function private.SafeCall(func, ...)
+    local ok, result = pcall(func, ...)
+    if ok and result then
+        local t = type(result)
+        if t == "string" or t == "number" or t == "boolean" then
+            return result
+        end
+    end
+    return nil
+end
+
 --[[========================================================================
     CLASSIC: COMBAT_LOG_EVENT_UNFILTERED → PARTY_KILL
 ========================================================================--]]
@@ -110,79 +131,107 @@ end
     RETAIL PATH 1: TryTrackFromLoot()
     Called from Events.OnChatMsgLoot — the most reliable hook since
     CHAT_MSG_LOOT always fires when you loot something.
-    While looting a corpse, the "npc" unit token refers to that corpse.
+
+    CRITICAL FOR AoE LOOTING:
+    When AoE looting multiple corpses, WoW combines all items into one
+    loot window. Each loot slot has a different source GUID (the corpse
+    it came from). We MUST scan ALL loot slots to find every unique
+    creature GUID, not just stop at the first one found.
+
+    UnitGUID("npc") only points to the one corpse you right-clicked,
+    so we use it as a supplement, not as an early-exit.
 ========================================================================--]]
 function KillTracker.TryTrackFromLoot()
     if not LA.Session.IsRunning() then return end
 
     private.PurgeExpiredDedup()
 
-    -- Try UnitGUID("npc") — set while interacting with a lootable NPC corpse
-    local guid = private.SafeCall(UnitGUID, "npc")
-    local name = private.SafeCall(UnitName, "npc")
+    local killsFound = 0
+
+    -- Track which GUIDs we've processed this call (not same as recentKills)
+    local processedThisCall = {}
+
+    -- 1) Try UnitGUID("npc") — the corpse you right-clicked to loot
+    local npcGuid = private.SafeCall(UnitGUID, "npc")
+    local npcName = private.SafeCall(UnitName, "npc")
 
     LA.Debug.Log("KillTracker: TryTrackFromLoot  UnitGUID('npc')='%s'  UnitName('npc')='%s'",
-        tostring(guid), tostring(name))
+        tostring(npcGuid), tostring(npcName))
 
-    if guid then
-        local npcID = KillTracker.ExtractNpcID(guid)
-        if npcID and not private.AlreadyCounted(guid) then
-            local npcName = (name and type(name) == "string" and name ~= "")
-                and name or ("NPC-" .. npcID)
+    if npcGuid and type(npcGuid) == "string" then
+        processedThisCall[npcGuid] = true
+        local npcID = KillTracker.ExtractNpcID(npcGuid)
+        if npcID and not private.AlreadyCounted(npcGuid) then
+            local name = (npcName and type(npcName) == "string" and npcName ~= "")
+                and npcName or ("NPC-" .. npcID)
             LA.Debug.Log("KillTracker: >> KILL from loot (npc unit)  npcID=%s  name=%s",
-                tostring(npcID), npcName)
-            private.MarkCounted(guid)
-            private.RecordKill(npcID, npcName)
-            return
+                tostring(npcID), name)
+            private.MarkCounted(npcGuid)
+            private.RecordKill(npcID, name)
+            killsFound = killsFound + 1
         end
     end
 
-    -- Fallback: try target (you might still have the dead mob targeted)
-    guid = private.SafeCall(UnitGUID, "target")
-    name = private.SafeCall(UnitName, "target")
-    local isDead = private.SafeCall(UnitIsDead, "target")
-
-    LA.Debug.Log("KillTracker: TryTrackFromLoot fallback  target guid='%s'  name='%s'  dead=%s",
-        tostring(guid), tostring(name), tostring(isDead))
-
-    if guid and isDead then
-        local npcID = KillTracker.ExtractNpcID(guid)
-        if npcID and not private.AlreadyCounted(guid) then
-            local npcName = (name and type(name) == "string" and name ~= "")
-                and name or ("NPC-" .. npcID)
-            LA.Debug.Log("KillTracker: >> KILL from loot (target)  npcID=%s  name=%s",
-                tostring(npcID), npcName)
-            private.MarkCounted(guid)
-            private.RecordKill(npcID, npcName)
-            return
-        end
-    end
-
-    -- Last resort: try GetLootSourceInfo if available
+    -- 2) Scan ALL loot slots via GetLootSourceInfo
+    --    This is how we catch the other 4 corpses in a 5-mob AoE pull
     if GetLootSourceInfo then
         local okNum, numSlots = pcall(GetNumLootItems)
-        if okNum and numSlots and tonumber(numSlots) then
-            for slot = 1, tonumber(numSlots) do
+        if okNum and numSlots then
+            numSlots = tonumber(numSlots) or 0
+            LA.Debug.Log("KillTracker: Scanning %d loot slots for AoE sources", numSlots)
+
+            for slot = 1, numSlots do
                 local ok, sourceGUID = pcall(GetLootSourceInfo, slot)
-                LA.Debug.Log("KillTracker: GetLootSourceInfo(%d) ok=%s  guid='%s'  type=%s",
-                    slot, tostring(ok), tostring(sourceGUID), type(sourceGUID))
-                if ok and sourceGUID and type(sourceGUID) == "string" then
+                if ok and sourceGUID and type(sourceGUID) == "string"
+                   and not processedThisCall[sourceGUID] then
+                    processedThisCall[sourceGUID] = true
+
                     local npcID = KillTracker.ExtractNpcID(sourceGUID)
                     if npcID and not private.AlreadyCounted(sourceGUID) then
-                        local npcName = (name and type(name) == "string" and name ~= "")
-                            and name or ("NPC-" .. npcID)
-                        LA.Debug.Log("KillTracker: >> KILL from GetLootSourceInfo  npcID=%s  name=%s",
-                            tostring(npcID), npcName)
+                        -- We can't get the name per-corpse from GetLootSourceInfo,
+                        -- so use UnitName("npc") if same type, else fallback to NPC-ID
+                        local name
+                        if npcName and type(npcName) == "string" and npcName ~= "" then
+                            name = npcName
+                        else
+                            name = "NPC-" .. npcID
+                        end
+                        LA.Debug.Log("KillTracker: >> KILL from AoE loot slot %d  npcID=%s  name=%s  guid=%s",
+                            slot, tostring(npcID), name, sourceGUID)
                         private.MarkCounted(sourceGUID)
-                        private.RecordKill(npcID, npcName)
-                        return
+                        private.RecordKill(npcID, name)
+                        killsFound = killsFound + 1
                     end
                 end
             end
         end
     end
 
-    LA.Debug.Log("KillTracker: TryTrackFromLoot — could not identify kill source")
+    -- 3) Fallback: try target if we found nothing above
+    if killsFound == 0 then
+        local guid = private.SafeCall(UnitGUID, "target")
+        local name = private.SafeCall(UnitName, "target")
+        local isDead = private.SafeCall(UnitIsDead, "target")
+
+        if guid and isDead and type(guid) == "string" then
+            local npcID = KillTracker.ExtractNpcID(guid)
+            if npcID and not private.AlreadyCounted(guid) then
+                local npcNameFinal = (name and type(name) == "string" and name ~= "")
+                    and name or ("NPC-" .. npcID)
+                LA.Debug.Log("KillTracker: >> KILL from loot (target fallback)  npcID=%s  name=%s",
+                    tostring(npcID), npcNameFinal)
+                private.MarkCounted(guid)
+                private.RecordKill(npcID, npcNameFinal)
+                killsFound = killsFound + 1
+            end
+        end
+    end
+
+    if killsFound == 0 then
+        LA.Debug.Log("KillTracker: TryTrackFromLoot — could not identify kill source")
+    else
+        LA.Debug.Log("KillTracker: TryTrackFromLoot — recorded %d kill(s)", killsFound)
+    end
 end
 
 --[[========================================================================
@@ -190,7 +239,6 @@ end
 ========================================================================--]]
 function KillTracker.OnLootReady()
     LA.Debug.Log("KillTracker: >>> LOOT_READY fired")
-    -- Same logic as TryTrackFromLoot
     KillTracker.TryTrackFromLoot()
 end
 
@@ -234,22 +282,6 @@ function private.TryCountDeadUnit(unit)
 
     private.MarkCounted(guid)
     private.RecordKill(npcID, npcName)
-end
-
---[[------------------------------------------------------------------------
-    Safe pcall wrapper: returns the result or nil
---------------------------------------------------------------------------]]
-function private.SafeCall(func, ...)
-    local ok, result = pcall(func, ...)
-    if ok and result and type(result) ~= "userdata" then
-        -- Extra guard: check it's not a secret value masquerading as something
-        -- type() on a secret value may return "secret" in future patches
-        local t = type(result)
-        if t == "string" or t == "number" or t == "boolean" then
-            return result
-        end
-    end
-    return nil
 end
 
 --[[------------------------------------------------------------------------

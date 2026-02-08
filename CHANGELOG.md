@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.1.3
+### Changed
+ - Improve AoE farm kill tracking for retail (better but not perfect)
+
 ## v3.1.2
 ### Changed
  - Reenable kill track for retail. (Does only work for single mob kills right now)

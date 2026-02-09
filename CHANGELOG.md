@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.2.0
+### Changed
+ - Fixed in dungeon/raid issue with kill tracker
+
 ## v3.1.3
 ### Changed
  - Improve AoE farm kill tracking for retail (better but not perfect)

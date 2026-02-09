@@ -56,16 +56,29 @@ local DEDUP_WINDOW = 120
 --[[------------------------------------------------------------------------
     Extract NPC ID from a creature GUID
     Format: "Creature-0-XXXX-XXXX-XXXX-NPCID-XXXX"
+    
+    NOTE: WoW 12.0+ may pass GUIDs as secret values. Even after tostring(),
+    the result may still be a secret value. We wrap ALL operations in pcall.
 --------------------------------------------------------------------------]]
 function KillTracker.ExtractNpcID(guid)
-    if not guid or type(guid) ~= "string" then return nil end
-
-    local guidType = strsplit("-", guid)
-    if guidType ~= "Creature" and guidType ~= "Vehicle" then
-        return nil
+    if not guid then return nil end
+    
+    -- Wrap everything in pcall since secret values can fail at any operation
+    local ok, npcID = pcall(function()
+        local guidStr = tostring(guid)
+        -- All string operations in one protected block
+        local guidType = strsplit("-", guidStr)
+        if guidType ~= "Creature" and guidType ~= "Vehicle" then
+            return nil
+        end
+        return select(6, strsplit("-", guidStr))
+    end)
+    
+    if ok and npcID then
+        return npcID
     end
-
-    return select(6, strsplit("-", guid))
+    
+    return nil
 end
 
 --[[------------------------------------------------------------------------
@@ -74,18 +87,23 @@ end
 function private.PurgeExpiredDedup()
     local now = GetTime()
     for guid, timestamp in pairs(recentKills) do
-        if (now - timestamp) > DEDUP_WINDOW then
-            recentKills[guid] = nil
-        end
+        pcall(function()
+            if (now - timestamp) > DEDUP_WINDOW then
+                recentKills[guid] = nil
+            end
+        end)
     end
 end
 
 function private.AlreadyCounted(guid)
-    return guid and recentKills[guid] ~= nil
+    if not guid then return false end
+    local ok, result = pcall(function() return recentKills[guid] end)
+    return ok and result ~= nil
 end
 
 function private.MarkCounted(guid)
-    if guid then recentKills[guid] = GetTime() end
+    if not guid then return end
+    pcall(function() recentKills[guid] = GetTime() end)
 end
 
 --[[------------------------------------------------------------------------
@@ -100,6 +118,41 @@ function private.SafeCall(func, ...)
             return result
         end
     end
+    return nil
+end
+
+--[[------------------------------------------------------------------------
+    Safe GUID retrieval: handles secret values in WoW 12.0+
+    
+    WoW 12.0+ returns GUIDs as "secret values" - a protected type that:
+    - Cannot be used with string functions directly
+    - tostring() may STILL return a secret value
+    - Even comparisons like ~= "" can fail
+    
+    We wrap EVERYTHING in pcall to be safe.
+    Returns a plain string GUID or nil if unable to convert.
+--------------------------------------------------------------------------]]
+function private.SafeGUID(func, ...)
+    -- Step 1: Call the function safely
+    local callOk, rawResult = pcall(func, ...)
+    if not callOk or rawResult == nil then 
+        return nil 
+    end
+    
+    -- Step 2: Try to convert and validate in one protected block
+    local convertOk, finalResult = pcall(function()
+        local str = tostring(rawResult)
+        -- All these operations could fail on secret values
+        if str and type(str) == "string" and #str > 0 and str:find("-") then
+            return str
+        end
+        return nil
+    end)
+    
+    if convertOk and finalResult then
+        return finalResult
+    end
+    
     return nil
 end
 
@@ -152,18 +205,17 @@ function KillTracker.TryTrackFromLoot()
     local processedThisCall = {}
 
     -- 1) Try UnitGUID("npc") — the corpse you right-clicked to loot
-    local npcGuid = private.SafeCall(UnitGUID, "npc")
+    local npcGuid = private.SafeGUID(UnitGUID, "npc")
     local npcName = private.SafeCall(UnitName, "npc")
 
     LA.Debug.Log("KillTracker: TryTrackFromLoot  UnitGUID('npc')='%s'  UnitName('npc')='%s'",
-        tostring(npcGuid), tostring(npcName))
+        tostring(npcGuid or "nil"), tostring(npcName or "nil"))
 
-    if npcGuid and type(npcGuid) == "string" then
+    if npcGuid then
         processedThisCall[npcGuid] = true
         local npcID = KillTracker.ExtractNpcID(npcGuid)
         if npcID and not private.AlreadyCounted(npcGuid) then
-            local name = (npcName and type(npcName) == "string" and npcName ~= "")
-                and npcName or ("NPC-" .. npcID)
+            local name = (npcName and npcName ~= "") and npcName or ("NPC-" .. npcID)
             LA.Debug.Log("KillTracker: >> KILL from loot (npc unit)  npcID=%s  name=%s",
                 tostring(npcID), name)
             private.MarkCounted(npcGuid)
@@ -181,21 +233,17 @@ function KillTracker.TryTrackFromLoot()
             LA.Debug.Log("KillTracker: Scanning %d loot slots for AoE sources", numSlots)
 
             for slot = 1, numSlots do
-                local ok, sourceGUID = pcall(GetLootSourceInfo, slot)
-                if ok and sourceGUID and type(sourceGUID) == "string"
-                   and not processedThisCall[sourceGUID] then
+                -- GetLootSourceInfo may return secret values in 12.0+
+                local sourceGUID = private.SafeGUID(GetLootSourceInfo, slot)
+                
+                if sourceGUID and not processedThisCall[sourceGUID] then
                     processedThisCall[sourceGUID] = true
 
                     local npcID = KillTracker.ExtractNpcID(sourceGUID)
                     if npcID and not private.AlreadyCounted(sourceGUID) then
                         -- We can't get the name per-corpse from GetLootSourceInfo,
                         -- so use UnitName("npc") if same type, else fallback to NPC-ID
-                        local name
-                        if npcName and type(npcName) == "string" and npcName ~= "" then
-                            name = npcName
-                        else
-                            name = "NPC-" .. npcID
-                        end
+                        local name = (npcName and npcName ~= "") and npcName or ("NPC-" .. npcID)
                         LA.Debug.Log("KillTracker: >> KILL from AoE loot slot %d  npcID=%s  name=%s  guid=%s",
                             slot, tostring(npcID), name, sourceGUID)
                         private.MarkCounted(sourceGUID)
@@ -209,15 +257,14 @@ function KillTracker.TryTrackFromLoot()
 
     -- 3) Fallback: try target if we found nothing above
     if killsFound == 0 then
-        local guid = private.SafeCall(UnitGUID, "target")
+        local guid = private.SafeGUID(UnitGUID, "target")
         local name = private.SafeCall(UnitName, "target")
         local isDead = private.SafeCall(UnitIsDead, "target")
 
-        if guid and isDead and type(guid) == "string" then
+        if guid and isDead then
             local npcID = KillTracker.ExtractNpcID(guid)
             if npcID and not private.AlreadyCounted(guid) then
-                local npcNameFinal = (name and type(name) == "string" and name ~= "")
-                    and name or ("NPC-" .. npcID)
+                local npcNameFinal = (name and name ~= "") and name or ("NPC-" .. npcID)
                 LA.Debug.Log("KillTracker: >> KILL from loot (target fallback)  npcID=%s  name=%s",
                     tostring(npcID), npcNameFinal)
                 private.MarkCounted(guid)
@@ -263,8 +310,8 @@ function private.TryCountDeadUnit(unit)
     local isDead = private.SafeCall(UnitIsDead, unit)
     if not isDead then return end
 
-    local guid = private.SafeCall(UnitGUID, unit)
-    if not guid or type(guid) ~= "string" then return end
+    local guid = private.SafeGUID(UnitGUID, unit)
+    if not guid then return end
     if private.AlreadyCounted(guid) then return end
 
     local npcID = KillTracker.ExtractNpcID(guid)
@@ -275,7 +322,7 @@ function private.TryCountDeadUnit(unit)
     if not creatureType then return end
 
     local name = private.SafeCall(UnitName, unit)
-    local npcName = (name and type(name) == "string") and name or ("NPC-" .. npcID)
+    local npcName = (name and name ~= "") and name or ("NPC-" .. npcID)
 
     LA.Debug.Log("KillTracker: >> KILL from regen (dead %s)  npcID=%s  name=%s",
         unit, tostring(npcID), npcName)
@@ -288,12 +335,18 @@ end
     Check whether a GUID/flags combo represents an NPC
 --------------------------------------------------------------------------]]
 function private.IsNPC(guid, flags)
-    if type(guid) == "string" then
-        local guidType = strsplit("-", guid)
-        if guidType == "Creature" or guidType == "Vehicle" then
+    -- Try GUID-based check with pcall for secret value safety
+    if guid then
+        local ok, isCreature = pcall(function()
+            local guidStr = tostring(guid)
+            local guidType = strsplit("-", guidStr)
+            return guidType == "Creature" or guidType == "Vehicle"
+        end)
+        if ok and isCreature then
             return true
         end
     end
+    -- Fallback to flags check
     if flags and type(flags) == "number" and bit.band(flags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
         return true
     end

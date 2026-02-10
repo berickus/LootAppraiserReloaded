@@ -77,6 +77,153 @@ function Util.ToItemID(itemString)
     return tonumber(string.match(itemString, "|Hitem:(%d+):"))
 end
 
+--[[
+    Parse a WoW item link into its components.
+    Item link format: |Hitem:itemID:enchant:gem1:gem2:gem3:gem4:suffixID:uniqueID:linkLevel:specID:modifiersMask:instanceDifficultyID:numBonusIDs[:bonusID1:...]:numModifiers[:modType1:modVal1:...]|h[Name]|h
+
+    Returns a table with: itemID, itemName, itemLevel, bonusIds (array), modifiers (array of type-9 values)
+]]
+function Util.ParseItemLink(itemLink)
+    if not itemLink then return nil end
+
+    -- Extract the item string between |H and |h
+    local itemString = itemLink:match("|Hitem:([^|]+)|")
+    if not itemString then return nil end
+
+    -- Split the item string by ":"
+    local parts = {}
+    for v in itemString:gmatch("([^:]*):?") do
+        parts[#parts + 1] = v
+    end
+
+    local itemID = tonumber(parts[1])
+    if not itemID then return nil end
+
+    -- Get item name from the link
+    local itemName = itemLink:match("|h%[(.-)%]|h")
+
+    -- Get item level from GetItemInfo (index 4 = item level in GetDetailedItemLevelInfo or select(4, GetItemInfo()))
+    local itemLevel = 0
+    if C_Item.GetDetailedItemLevelInfo then
+        itemLevel = C_Item.GetDetailedItemLevelInfo(itemLink) or 0
+    else
+        itemLevel = select(4, C_Item.GetItemInfo(itemLink)) or 0
+    end
+
+    -- Parse bonus IDs
+    -- Standard positions: 1=itemID, 2=enchant, 3-6=gems, 7=suffixID, 8=uniqueID,
+    -- 9=linkLevel, 10=specID, 11=modifiersMask, 12=instanceDifficultyID,
+    -- 13=numBonusIDs, then bonusIDs, then numModifiers, then modifier pairs
+    local bonusIds = {}
+    local modifiers = {}
+
+    local numBonusIDs = tonumber(parts[13]) or 0
+    local bonusStart = 14
+    for i = bonusStart, bonusStart + numBonusIDs - 1 do
+        local bid = tonumber(parts[i])
+        if bid then
+            bonusIds[#bonusIds + 1] = bid
+        end
+    end
+
+    -- After bonus IDs comes numModifiers then pairs of (type, value)
+    local modStart = bonusStart + numBonusIDs
+    local numModifiers = tonumber(parts[modStart]) or 0
+    for i = 1, numModifiers do
+        local modType = tonumber(parts[modStart + (i - 1) * 2 + 1])
+        local modValue = tonumber(parts[modStart + (i - 1) * 2 + 2])
+        if modType == 9 and modValue then
+            modifiers[#modifiers + 1] = modValue
+        end
+    end
+
+    return {
+        itemID = itemID,
+        itemName = itemName or "",
+        itemLevel = tonumber(itemLevel) or 0,
+        bonusIds = bonusIds,
+        modifiers = modifiers
+    }
+end
+
+--[[
+    Serialize a Lua table to a JSON string.
+    Handles nested tables, arrays, strings, numbers, booleans, and nil.
+]]
+function Util.TableToJSON(val, indent, currentIndent)
+    indent = indent or "  "
+    currentIndent = currentIndent or ""
+    local nextIndent = currentIndent .. indent
+
+    if val == nil then
+        return "null"
+    elseif type(val) == "boolean" then
+        return val and "true" or "false"
+    elseif type(val) == "number" then
+        -- Avoid scientific notation for large integers
+        if val == floor(val) and val < 1e15 and val > -1e15 then
+            return string.format("%d", val)
+        end
+        return tostring(val)
+    elseif type(val) == "string" then
+        -- Escape special characters
+        local escaped = val:gsub('\\', '\\\\'):gsub('"', '\\"')
+                           :gsub('\n', '\\n'):gsub('\r', '\\r')
+                           :gsub('\t', '\\t')
+        -- Strip WoW color codes for cleaner JSON
+        escaped = escaped:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|H.-|h", ""):gsub("|h", "")
+        return '"' .. escaped .. '"'
+    elseif type(val) == "table" then
+        -- Determine if array (sequential integer keys starting at 1)
+        local isArray = true
+        local maxN = 0
+        for k, _ in pairs(val) do
+            if type(k) == "number" and k == floor(k) and k > 0 then
+                if k > maxN then maxN = k end
+            else
+                isArray = false
+                break
+            end
+        end
+        if maxN == 0 and next(val) ~= nil then isArray = false end
+        -- Also verify there are no gaps
+        if isArray then
+            for i = 1, maxN do
+                if val[i] == nil then
+                    isArray = false
+                    break
+                end
+            end
+        end
+
+        local parts = {}
+        if isArray then
+            for i = 1, maxN do
+                parts[#parts + 1] = nextIndent .. Util.TableToJSON(val[i], indent, nextIndent)
+            end
+            if #parts == 0 then return "[]" end
+            return "[\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent .. "]"
+        else
+            -- Sort keys for consistent output
+            local keys = {}
+            for k in pairs(val) do
+                keys[#keys + 1] = k
+            end
+            table.sort(keys, function(a, b)
+                return tostring(a) < tostring(b)
+            end)
+            for _, k in ipairs(keys) do
+                local keyStr = '"' .. tostring(k) .. '"'
+                parts[#parts + 1] = nextIndent .. keyStr .. ": " .. Util.TableToJSON(val[k], indent, nextIndent)
+            end
+            if #parts == 0 then return "{}" end
+            return "{\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent .. "}"
+        end
+    else
+        return '"' .. tostring(val) .. '"'
+    end
+end
+
 function Util.split(str, sep)
     local sep, fields = sep or ":", {}
     local pattern = string.format("([^%s]+)", sep)

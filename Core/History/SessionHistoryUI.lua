@@ -96,7 +96,7 @@ function private.CreateUI()
     btnExportAll:SetCallback("OnEnter", function(widget)
         GameTooltip:SetOwner(widget.frame, "ANCHOR_TOP")
         GameTooltip:AddLine("Export All Sessions")
-        GameTooltip:AddLine("|cffffffffExport all session data (loot, kills, gold) to CSV|r")
+        GameTooltip:AddLine("|cffffffffExport all session data (loot, kills, gold) to JSON|r")
         GameTooltip:Show()
     end)
     btnExportAll:SetCallback("OnLeave", function()
@@ -145,7 +145,7 @@ function private.CreateUI()
 
     -- Info label
     local infoLabel = AceGUI:Create("Label")
-    infoLabel:SetText("|cffaaaaaa" .. "Left-click to rename | Right-click to export CSV" .. "|r")
+    infoLabel:SetText("|cffaaaaaa" .. "Left-click to rename | Right-click to export JSON" .. "|r")
     infoLabel:SetFullWidth(true)
     private.HISTORY_UI:AddChild(infoLabel)
     
@@ -359,7 +359,7 @@ function private.ShowSessionTooltip(widget, session)
     
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("|cff00ff00Left-click to rename|r")
-    GameTooltip:AddLine("|cff00ff00Right-click to export CSV|r")
+    GameTooltip:AddLine("|cff00ff00Right-click to export JSON|r")
     
     GameTooltip:Show()
 end
@@ -456,37 +456,37 @@ function private.ConfirmDeleteSession(session)
 end
 
 --[[
-    Export a single session to CSV
+    Export a single session to JSON
 ]]
 function private.ExportSingleSession(session)
-    local csv, err = LA.SessionHistory.ExportSessionToCSV(session.id)
+    local json, err = LA.SessionHistory.ExportSessionToJSON(session.id)
     
-    if not csv then
+    if not json then
         LA:Print("Export failed: " .. (err or "Unknown error"))
         return
     end
     
-    private.ShowExportDialog(csv, LA.SessionHistory.GetSessionDisplayName(session))
+    private.ShowExportDialog(json, LA.SessionHistory.GetSessionDisplayName(session))
 end
 
 --[[
-    Export all sessions to CSV
+    Export all sessions to JSON
 ]]
 function private.ExportAllSessions()
-    local csv, err = LA.SessionHistory.ExportAllSessionsToCSV()
+    local json, err = LA.SessionHistory.ExportAllSessionsToJSON()
     
-    if not csv then
+    if not json then
         LA:Print("Export failed: " .. (err or "No sessions to export"))
         return
     end
     
-    private.ShowExportDialog(csv, "All Sessions")
+    private.ShowExportDialog(json, "All Sessions")
 end
 
 --[[
     Show export dialog with copyable text
 ]]
-function private.ShowExportDialog(csv, title)
+function private.ShowExportDialog(json, title)
     local exportFrame = AceGUI:Create("Frame")
     exportFrame:SetTitle("Export: " .. title)
     exportFrame:SetWidth(600)
@@ -494,8 +494,8 @@ function private.ShowExportDialog(csv, title)
     exportFrame:SetLayout("Fill")
     
     local editBox = AceGUI:Create("MultiLineEditBox")
-    editBox:SetLabel("CSV Data (select all and copy with Ctrl+C):")
-    editBox:SetText(csv)
+    editBox:SetLabel("JSON Data (select all and copy with Ctrl+C):")
+    editBox:SetText(json)
     editBox:SetFullWidth(true)
     editBox:SetFullHeight(true)
     editBox:DisableButton(true)
@@ -512,5 +512,5 @@ function private.ShowExportDialog(csv, title)
         editBox.editBox:HighlightText()
     end)
     
-    LA:Print("CSV export ready. Select all and copy (Ctrl+A, Ctrl+C)")
+    LA:Print("JSON export ready. Select all and copy (Ctrl+A, Ctrl+C)")
 end

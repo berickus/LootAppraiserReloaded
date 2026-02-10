@@ -1154,11 +1154,11 @@ local options = {
                                     type = "execute",
                                     order = 30,
                                     name = "Export All Sessions",
-                                    desc = "Export all sessions to CSV format (or /lahistory export)",
+                                    desc = "Export all sessions to JSON format (or /lahistory export)",
                                     func = function()
                                         if LA.SessionHistory then
-                                            local csv, err = LA.SessionHistory.ExportAllSessionsToCSV()
-                                            if csv then
+                                            local json, err = LA.SessionHistory.ExportAllSessionsToJSON()
+                                            if json then
                                                 local AceGUI = LibStub("AceGUI-3.0")
                                                 local exportFrame = AceGUI:Create("Frame")
                                                 exportFrame:SetTitle("Export All Sessions")
@@ -1167,14 +1167,14 @@ local options = {
                                                 exportFrame:SetLayout("Fill")
                                                 
                                                 local editBox = AceGUI:Create("MultiLineEditBox")
-                                                editBox:SetLabel("CSV Data (select all and copy with Ctrl+C):")
-                                                editBox:SetText(csv)
+                                                editBox:SetLabel("JSON Data (select all and copy with Ctrl+C):")
+                                                editBox:SetText(json)
                                                 editBox:SetFullWidth(true)
                                                 editBox:SetFullHeight(true)
                                                 editBox:DisableButton(true)
                                                 exportFrame:AddChild(editBox)
                                                 
-                                                LA:Print("CSV export ready. Select all and copy (Ctrl+A, Ctrl+C)")
+                                                LA:Print("JSON export ready. Select all and copy (Ctrl+A, Ctrl+C)")
                                             else
                                                 LA:Print("Export failed: " .. (err or "No sessions to export"))
                                             end

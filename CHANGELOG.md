@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.2.1
+### Changed
+ - Switched session export from CSV to JSON
+ - Added looted items to export
+
 ## v3.2.0
 ### Changed
  - Fixed in dungeon/raid issue with kill tracker

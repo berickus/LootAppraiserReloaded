@@ -88,13 +88,32 @@ function SessionHistory.AddLootItem(itemID, itemLink, quantity, value)
         private.currentSessionData = { loot = {} }
     end
     
-    table.insert(private.currentSessionData.loot, {
+    -- Parse enriched item data from the item link
+    local parsed = LA.Util.ParseItemLink(itemLink)
+    
+    local entry = {
         itemID = itemID,
         itemLink = itemLink,
         quantity = quantity,
         value = value,
         time = time()
-    })
+    }
+    
+    if parsed then
+        entry.itemName = parsed.itemName
+        entry.itemLevel = parsed.itemLevel
+        entry.bonusIds = parsed.bonusIds
+        entry.modifiers = parsed.modifiers
+    else
+        -- Fallback: at least get the name from GetItemInfo
+        local name = GetItemInfo(itemID)
+        entry.itemName = name or ""
+        entry.itemLevel = 0
+        entry.bonusIds = {}
+        entry.modifiers = {}
+    end
+    
+    table.insert(private.currentSessionData.loot, entry)
 end
 
 -- Save current session to history (called when session ends/resets)
@@ -260,100 +279,138 @@ function SessionHistory.ResetAll()
     LA:Print("Session history reset. " .. count .. " session(s) deleted.")
 end
 
--- Export a single session to CSV
-function SessionHistory.ExportSessionCSV(sessionID)
+-- Export a single session to JSON
+function SessionHistory.ExportSessionJSON(sessionID)
     local session = SessionHistory.GetSession(sessionID)
     if not session then
         LA:Print("Session not found: " .. tostring(sessionID))
         return nil
     end
     
-    return SessionHistory.GenerateCSV({session})
+    return SessionHistory.GenerateJSON({session})
 end
 
--- Export all sessions to CSV
-function SessionHistory.ExportAllCSV()
+-- Export all sessions to JSON
+function SessionHistory.ExportAllJSON()
     local sessions = SessionHistory.GetAllSessions()
     if #sessions == 0 then
         LA:Print("No sessions to export.")
         return nil
     end
     
-    return SessionHistory.GenerateCSV(sessions)
+    return SessionHistory.GenerateJSON(sessions)
 end
 
--- Generate CSV string from sessions (unified export: session data + kill details)
-function SessionHistory.GenerateCSV(sessions)
-    local lines = {}
-    
-    -- Header
-    table.insert(lines, "Session ID,Session Name,Start Time,End Time,Duration (min),Zone,Player,Total Value (gold),Item Count,Noteworthy Count,Currency Looted (gold),Vendor Sales (gold),Total Kills,Unique NPCs,Kill Details,Price Source,Quality Filter")
+-- Generate JSON string from sessions
+function SessionHistory.GenerateJSON(sessions)
+    local exportSessions = {}
     
     for _, session in ipairs(sessions) do
-        local startDate = date("%Y-%m-%d %H:%M:%S", session.startTime)
-        local endDate = date("%Y-%m-%d %H:%M:%S", session.endTime)
-        local durationMin = floor((session.duration or 0) / 60)
-        local totalGold = floor((session.totalValue or 0) / 10000)
-        local currencyGold = floor((session.currencyLooted or 0) / 10000)
-        local vendorGold = floor((session.vendorSales or 0) / 10000)
-        
-        -- Escape commas and quotes in name
-        local name = (session.name or ""):gsub('"', '""')
-        if name:find(",") or name:find('"') then
-            name = '"' .. name .. '"'
-        end
-        
-        -- Build kill details string: "NpcName x3 | OtherNpc x7 | ..."
-        local killDetails = ""
+        -- Build kill details array
+        local killDetails = {}
         local kills = session.kills
         if kills and next(kills) then
-            local sorted = {}
             for npcID, data in pairs(kills) do
-                sorted[#sorted + 1] = { name = data.name, count = data.count }
+                killDetails[#killDetails + 1] = {
+                    npcID = tostring(npcID),
+                    name = data.name or "Unknown",
+                    count = data.count or 0
+                }
             end
-            table.sort(sorted, function(a, b) return a.count > b.count end)
-            
-            local parts = {}
-            for _, entry in ipairs(sorted) do
-                parts[#parts + 1] = (entry.name or "Unknown") .. " x" .. entry.count
-            end
-            killDetails = table.concat(parts, " | ")
+            -- Sort by count descending
+            table.sort(killDetails, function(a, b) return a.count > b.count end)
         end
-        -- Wrap in quotes since it may contain special chars
-        killDetails = '"' .. killDetails:gsub('"', '""') .. '"'
         
-        local line = string.format('%d,%s,%s,%s,%d,%s,%s,%d,%d,%d,%d,%d,%d,%d,%s,%s,%s',
-            session.id or 0,
-            name,
-            startDate,
-            endDate,
-            durationMin,
-            (session.zone or "Unknown"):gsub(",", ";"),
-            (session.player or "Unknown"):gsub(",", ";"),
-            totalGold,
-            session.itemCount or 0,
-            session.noteworthyCount or 0,
-            currencyGold,
-            vendorGold,
-            session.totalKills or 0,
-            session.uniqueKills or 0,
-            killDetails,
-            (session.priceSource or "Unknown"):gsub(",", ";"),
-            session.qualityFilter or "1"
-        )
+        -- Build loot array grouped by itemID + bonusIds + modifiers
+        local lootItems = {}
+        if session.loot then
+            local grouped = {}  -- key -> aggregated entry
+            local groupOrder = {}  -- maintain insertion order
+            
+            for _, item in ipairs(session.loot) do
+                -- Build a unique key from itemID + sorted bonusIds + sorted modifiers
+                local bonusIds = item.bonusIds or {}
+                local modifiers = item.modifiers or {}
+                local key = tostring(item.itemID or 0)
+                
+                if #bonusIds > 0 then
+                    local sortedBonus = {}
+                    for _, v in ipairs(bonusIds) do sortedBonus[#sortedBonus + 1] = v end
+                    table.sort(sortedBonus)
+                    key = key .. ":b" .. table.concat(sortedBonus, ",")
+                end
+                if #modifiers > 0 then
+                    local sortedMods = {}
+                    for _, v in ipairs(modifiers) do sortedMods[#sortedMods + 1] = v end
+                    table.sort(sortedMods)
+                    key = key .. ":m" .. table.concat(sortedMods, ",")
+                end
+                
+                if grouped[key] then
+                    grouped[key].quantity = grouped[key].quantity + (item.quantity or 1)
+                    grouped[key].totalValue = grouped[key].totalValue + (item.value or 0)
+                else
+                    grouped[key] = {
+                        itemID = item.itemID,
+                        itemName = item.itemName or "",
+                        itemLevel = item.itemLevel or 0,
+                        bonusIds = bonusIds,
+                        modifiers = modifiers,
+                        quantity = item.quantity or 1,
+                        totalValue = item.value or 0
+                    }
+                    groupOrder[#groupOrder + 1] = key
+                end
+            end
+            
+            for _, key in ipairs(groupOrder) do
+                lootItems[#lootItems + 1] = grouped[key]
+            end
+        end
         
-        table.insert(lines, line)
+        exportSessions[#exportSessions + 1] = {
+            id = session.id or 0,
+            name = session.name or "",
+            startTime = session.startTime or 0,
+            startTimeFormatted = date("%Y-%m-%d %H:%M:%S", session.startTime or 0),
+            endTime = session.endTime or 0,
+            endTimeFormatted = date("%Y-%m-%d %H:%M:%S", session.endTime or 0),
+            duration = session.duration or 0,
+            durationMinutes = floor((session.duration or 0) / 60),
+            zone = session.zone or session.zoneName or "Unknown",
+            mapID = session.mapID,
+            player = session.player or "Unknown",
+            totalValue = session.totalValue or 0,
+            totalValueGroup = session.totalValueGroup or 0,
+            itemCount = session.itemCount or 0,
+            noteworthyCount = session.noteworthyCount or 0,
+            currencyLooted = session.currencyLooted or 0,
+            vendorSales = session.vendorSales or 0,
+            totalKills = session.totalKills or 0,
+            uniqueKills = session.uniqueKills or 0,
+            priceSource = session.priceSource or (session.settings and session.settings.priceSource) or "Unknown",
+            qualityFilter = session.qualityFilter or (session.settings and session.settings.qualityFilter) or "1",
+            kills = killDetails,
+            loot = lootItems
+        }
     end
     
-    return table.concat(lines, "\n")
+    local wrapper = {
+        exportVersion = 1,
+        exportDate = date("%Y-%m-%d %H:%M:%S"),
+        sessionCount = #exportSessions,
+        sessions = exportSessions
+    }
+    
+    return LA.Util.TableToJSON(wrapper)
 end
 
--- Show export popup with CSV data
-function SessionHistory.ShowExportPopup(csvData)
-    if not csvData then return end
+-- Show export popup with JSON data
+function SessionHistory.ShowExportPopup(jsonData)
+    if not jsonData then return end
     
     local frame = AceGUI:Create("Frame")
-    frame:SetTitle("Export Session History")
+    frame:SetTitle("Export Session History (JSON)")
     frame:SetStatusText("Select all and copy (Ctrl+A, Ctrl+C)")
     frame:SetLayout("Fill")
     frame:SetWidth(600)
@@ -362,7 +419,7 @@ function SessionHistory.ShowExportPopup(csvData)
     
     local editBox = AceGUI:Create("MultiLineEditBox")
     editBox:SetLabel("")
-    editBox:SetText(csvData)
+    editBox:SetText(jsonData)
     editBox:SetFullWidth(true)
     editBox:SetFullHeight(true)
     editBox:DisableButton(true)
@@ -409,7 +466,7 @@ function SessionHistory.ShowHistoryWindow()
     
     private.historyUI = AceGUI:Create("Frame")
     private.historyUI:SetTitle("Session History")
-    private.historyUI:SetStatusText("Left-click to rename | Right-click to export as CSV")
+    private.historyUI:SetStatusText("Left-click to rename | Right-click to export as JSON")
     private.historyUI:SetLayout("Fill")
     private.historyUI:SetWidth(500)
     private.historyUI:SetHeight(400)
@@ -489,9 +546,9 @@ function SessionHistory.RefreshHistoryList()
                     SessionHistory.RefreshHistoryList()
                 end)
             elseif button == "RightButton" then
-                local csv = SessionHistory.ExportSessionCSV(session.id)
-                if csv then
-                    SessionHistory.ShowExportPopup(csv)
+                local json = SessionHistory.ExportSessionJSON(session.id)
+                if json then
+                    SessionHistory.ShowExportPopup(json)
                 end
             end
         end)
@@ -519,9 +576,9 @@ function SessionHistory.HandleCommand(input)
         }
         StaticPopup_Show("LA_HISTORY_RESET_CONFIRM")
     elseif cmd == "export" then
-        local csv = SessionHistory.ExportAllCSV()
-        if csv then
-            SessionHistory.ShowExportPopup(csv)
+        local json = SessionHistory.ExportAllJSON()
+        if json then
+            SessionHistory.ShowExportPopup(json)
         end
     elseif cmd == "" or cmd == "show" then
         SessionHistory.ShowHistoryWindow()
@@ -529,7 +586,7 @@ function SessionHistory.HandleCommand(input)
         LA:Print("Usage: /lahistory [show|reset|export]")
         LA:Print("  show - Open session history window (default)")
         LA:Print("  reset - Delete all session history")
-        LA:Print("  export - Export all sessions as CSV")
+        LA:Print("  export - Export all sessions as JSON")
     end
 end
 
@@ -600,20 +657,20 @@ function SessionHistory.FormatValue(copper)
     end
 end
 
--- Export session to CSV (UI version)
-function SessionHistory.ExportSessionToCSV(sessionID)
+-- Export session to JSON (UI version)
+function SessionHistory.ExportSessionToJSON(sessionID)
     local session = SessionHistory.GetSession(sessionID)
     if not session then
         return nil, "Session not found"
     end
-    return SessionHistory.GenerateCSV({session}), nil
+    return SessionHistory.GenerateJSON({session}), nil
 end
 
--- Export all sessions to CSV (UI version)
-function SessionHistory.ExportAllSessionsToCSV()
+-- Export all sessions to JSON (UI version)
+function SessionHistory.ExportAllSessionsToJSON()
     local sessions = SessionHistory.GetAllSessions()
     if #sessions == 0 then
         return nil, "No sessions to export"
     end
-    return SessionHistory.GenerateCSV(sessions), nil
+    return SessionHistory.GenerateJSON(sessions), nil
 end

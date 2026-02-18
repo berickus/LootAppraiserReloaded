@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.2.2
+### Changed
+ - Change minimap icon so it also works with WoW Classic
+
 ## v3.2.1
 ### Changed
  - Switched session export from CSV to JSON

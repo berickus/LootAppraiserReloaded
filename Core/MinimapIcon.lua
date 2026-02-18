@@ -139,7 +139,7 @@ function MinimapIcon.SetupMinimapIcon()
         LA.CONST.METADATA.NAME, {
             type = "launcher",
             text = LA.CONST.METADATA.NAME,
-            icon = "Interface\\Icons\\Ability_Racial_PackHobgoblin",
+            icon = "Interface\\AddOns\\LootAppraiserReloaded\\Media\\icon.blp",
 
             OnClick = function(self, button, down)
                 private.HandleClick(button)

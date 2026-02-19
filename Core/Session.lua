@@ -21,12 +21,12 @@ local time, tonumber = time, tonumber
 
 function Session.New()
     LA.Debug.Log("NewSession")
-    
+
     -- Save the current session to history before starting a new one
     if private.sessionIsRunning and private.currentSession then
         LA.SessionHistory.SaveSession()
     end
-    
+
     private.PrepareNewSession()
     LA.SessionHistory.StartTracking()
     LA.UI.ClearLootCollectedList()
@@ -137,28 +137,4 @@ function private.PrepareNewSession()
     LALoot.global.location = ""
     LALoot.global.loot = ""
 
-    --[[
-			--add session details
-			local hour, minute = GetGameTime()
-			LALoot.global.session = (hour .. ":" .. minute)
-			--LA.global.sessions = (hour .. ":" .. minute)
-			
-			-- add zone details 
-			local currentMapID = C_Map.GetBestMapForUnit("player")
-			local zoneInfo = C_Map.GetMapInfo(currentMapID)
-			zoneInfo = zoneInfo and zoneInfo.name
-			
-			-- add looted items from session and location
-			LALoot.global.location = zoneInfo
-			--LALoot.global.loot = ("")
-			--LA.global.drops = (newLoot .. "\n" .. curLoot)
---]]
 end
---[[
-function Session.RestoreSession()
-	print("restore session data function.")
-	LA.Session.Start(true)
-	--LA.UI.AddItem2LootCollectedList(itemID, itemLink, quantity, itemValue, false, source, disenchanted)	-- add item
-	
-end
---]]

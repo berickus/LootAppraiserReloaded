@@ -1,16 +1,11 @@
---[[
-    MinimapIcon.lua
-    DataBroker, minimap icon, and addon compartment integration
-]]
-
 local LA = select(2, ...)
 
 local MinimapIcon = {}
 LA.MinimapIcon = MinimapIcon
 
 -- Wow APIs
-local IsShiftKeyDown, SecondsToTime, time, pairs =
-    IsShiftKeyDown, SecondsToTime, time, pairs
+local IsShiftKeyDown, SecondsToTime, time, pairs = IsShiftKeyDown,
+                                                   SecondsToTime, time, pairs
 
 local private = {}
 
@@ -43,9 +38,7 @@ function private.HandleLeftClick()
         local callback = private.GetModuleCallback("LeftButton", "Shift")
         if callback then callback() end
     else
-        if not LA.Session.IsRunning() then
-            LA.Session.Start(true)
-        end
+        if not LA.Session.IsRunning() then LA.Session.Start(true) end
         LA.UI.ShowMainWindow(true)
     end
 end
@@ -135,58 +128,62 @@ end
 --------------------------------------------------------------------------]]
 function MinimapIcon.SetupMinimapIcon()
     LA.icon = LibStub("LibDBIcon-1.0")
-    LA.LibDataBroker = LibStub("LibDataBroker-1.1"):NewDataObject(
-        LA.CONST.METADATA.NAME, {
-            type = "launcher",
-            text = LA.CONST.METADATA.NAME,
-            icon = "Interface\\AddOns\\LootAppraiserReloaded\\Media\\icon.blp",
+    LA.LibDataBroker = LibStub("LibDataBroker-1.1"):NewDataObject(LA.CONST
+                                                                      .METADATA
+                                                                      .NAME, {
+        type = "launcher",
+        text = LA.CONST.METADATA.NAME,
+        icon = "Interface\\AddOns\\LootAppraiserReloaded\\Media\\icon.blp",
 
-            OnClick = function(self, button, down)
-                private.HandleClick(button)
-            end,
+        OnClick = function(self, button, down)
+            private.HandleClick(button)
+        end,
 
-            OnTooltipShow = function(tooltip)
-                tooltip:AddLine(LA.CONST.METADATA.NAME .. " " .. LA.CONST.METADATA.VERSION, 1, 1, 1)
-                tooltip:AddLine("|cFFFFFFCCLeft-Click|r to open the main window")
-                tooltip:AddLine("|cFFFFFFCCRight-Click|r to open options window")
-                tooltip:AddLine("|cFFFFFFCCDrag|r to move this button")
-                tooltip:AddLine(" ")
+        OnTooltipShow = function(tooltip)
+            tooltip:AddLine(LA.CONST.METADATA.NAME .. " " ..
+                                LA.CONST.METADATA.VERSION, 1, 1, 1)
+            tooltip:AddLine("|cFFFFFFCCLeft-Click|r to open the main window")
+            tooltip:AddLine("|cFFFFFFCCRight-Click|r to open options window")
+            tooltip:AddLine("|cFFFFFFCCDrag|r to move this button")
+            tooltip:AddLine(" ")
 
-                if LA.Session.IsRunning() then
-                    local offset = LA.Session.GetPauseStart() or time()
-                    local delta = offset - LA.Session.GetCurrentSession("start") -
-                                      LA.Session.GetSessionPause()
+            if LA.Session.IsRunning() then
+                local offset = LA.Session.GetPauseStart() or time()
+                local delta = offset - LA.Session.GetCurrentSession("start") -
+                                  LA.Session.GetSessionPause()
 
-                    local noSeconds = delta > 3600
+                local noSeconds = delta > 3600
 
-                    local text = "Session is "
-                    if LA.Session.IsPaused() then
-                        text = text .. "paused: "
-                    else
-                        text = text .. "running: "
-                    end
-
-                    tooltip:AddDoubleLine(text, SecondsToTime(delta, noSeconds, false))
+                local text = "Session is "
+                if LA.Session.IsPaused() then
+                    text = text .. "paused: "
                 else
-                    tooltip:AddLine("Session is not running")
+                    text = text .. "running: "
                 end
 
-                -- Module tooltip lines
-                local modules = LA.GetModules()
-                if modules then
-                    for name, module in pairs(modules) do
-                        if module.icon and module.icon.tooltip then
-                            tooltip:AddLine(" ")
-                            for _, line in pairs(module.icon.tooltip) do
-                                tooltip:AddLine(line)
-                            end
+                tooltip:AddDoubleLine(text,
+                                      SecondsToTime(delta, noSeconds, false))
+            else
+                tooltip:AddLine("Session is not running")
+            end
+
+            -- Module tooltip lines
+            local modules = LA.GetModules()
+            if modules then
+                for name, module in pairs(modules) do
+                    if module.icon and module.icon.tooltip then
+                        tooltip:AddLine(" ")
+                        for _, line in pairs(module.icon.tooltip) do
+                            tooltip:AddLine(line)
                         end
                     end
                 end
             end
-        })
+        end
+    })
 
-    LA.icon:Register(LA.CONST.METADATA.NAME, LA.LibDataBroker, LA.db.profile.minimapIcon)
+    LA.icon:Register(LA.CONST.METADATA.NAME, LA.LibDataBroker,
+                     LA.db.profile.minimapIcon)
 
     if LA.db.profile.minimapIcon.hide == true then
         LA.icon:Show(LA.CONST.METADATA.NAME)
@@ -214,8 +211,6 @@ function MinimapIcon.SetupAddonCompartment()
                 LA.GenerateTooltip(true, tooltip)
             end)
         end,
-        funcOnLeave = function(button)
-            MenuUtil.HideTooltip(button)
-        end
+        funcOnLeave = function(button) MenuUtil.HideTooltip(button) end
     })
 end

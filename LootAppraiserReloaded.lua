@@ -1,16 +1,4 @@
---[[
-    LootAppraiserReloaded.lua
-    Main addon bootstrap - wires together all modules via AceAddon lifecycle
-    
-    The actual logic lives in Core/ submodules:
-        Core/API.lua            - Public API and module registration
-        Core/Init.lua           - Database initialization and GetFromDb
-        Core/MinimapIcon.lua    - DataBroker, minimap icon, addon compartment
-        Core/PriceSources.lua   - Price source management and item value lookups
-        Core/Events.lua         - WoW event handlers
-        Core/LootProcessing.lua - Core loot item processing and notifications
-        Core/Merchant.lua       - Vendor: sell grays, auto-repair
-]] local LA = select(2, ...)
+local LA = select(2, ...)
 
 local AceGUI = LibStub("AceGUI-3.0")
 

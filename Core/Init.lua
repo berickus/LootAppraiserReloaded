@@ -1,8 +1,3 @@
---[[
-    Init.lua
-    Database initialization and core helper functions
-]]
-
 local LA = select(2, ...)
 
 local Init = {}
@@ -17,8 +12,8 @@ function Init.InitDB()
     LA.Debug.Log("InitDB")
 
     -- Main addon database
-    LA.db = LibStub:GetLibrary("AceDB-3.0"):New(
-        "LootAppraiserReloadedDB", LA.CONST.DB_DEFAULTS, true)
+    LA.db = LibStub:GetLibrary("AceDB-3.0"):New("LootAppraiserReloadedDB",
+                                                LA.CONST.DB_DEFAULTS, true)
 
     -- Loot tracking database
     LALoot = LibStub("AceDB-3.0"):New("LALootDB", LA.CONST.DB_LOOT, true)

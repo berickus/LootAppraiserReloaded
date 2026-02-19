@@ -944,7 +944,7 @@ local options = {
                                     order = 74,
                                     name = "Show WoW Token price percentage (retail only)",
                                     desc = "Show the percentage of a WoW Token farmed.",
-                                    width = "double",
+                                    width = "double"
                                 },
                                 resetInstanzeHeader = {
                                     order = 75,
@@ -1144,9 +1144,11 @@ local options = {
                                     desc = "Save the current active session to history",
                                     func = function()
                                         if LA.Session.IsRunning() then
-                                            LA.SessionHistory.SaveCurrentSession()
+                                            LA.SessionHistory
+                                                .SaveCurrentSession()
                                         else
-                                            LA:Print("No active session to save.")
+                                            LA:Print(
+                                                "No active session to save.")
                                         end
                                     end
                                 },
@@ -1157,26 +1159,36 @@ local options = {
                                     desc = "Export all sessions to JSON format (or /lahistory export)",
                                     func = function()
                                         if LA.SessionHistory then
-                                            local json, err = LA.SessionHistory.ExportAllSessionsToJSON()
+                                            local json, err = LA.SessionHistory
+                                                                  .ExportAllSessionsToJSON()
                                             if json then
-                                                local AceGUI = LibStub("AceGUI-3.0")
-                                                local exportFrame = AceGUI:Create("Frame")
-                                                exportFrame:SetTitle("Export All Sessions")
+                                                local AceGUI = LibStub(
+                                                                   "AceGUI-3.0")
+                                                local exportFrame =
+                                                    AceGUI:Create("Frame")
+                                                exportFrame:SetTitle(
+                                                    "Export All Sessions")
                                                 exportFrame:SetWidth(600)
                                                 exportFrame:SetHeight(400)
                                                 exportFrame:SetLayout("Fill")
-                                                
-                                                local editBox = AceGUI:Create("MultiLineEditBox")
-                                                editBox:SetLabel("JSON Data (select all and copy with Ctrl+C):")
+
+                                                local editBox = AceGUI:Create(
+                                                                    "MultiLineEditBox")
+                                                editBox:SetLabel(
+                                                    "JSON Data (select all and copy with Ctrl+C):")
                                                 editBox:SetText(json)
                                                 editBox:SetFullWidth(true)
                                                 editBox:SetFullHeight(true)
                                                 editBox:DisableButton(true)
                                                 exportFrame:AddChild(editBox)
-                                                
-                                                LA:Print("JSON export ready. Select all and copy (Ctrl+A, Ctrl+C)")
+
+                                                LA:Print(
+                                                    "JSON export ready. Select all and copy (Ctrl+A, Ctrl+C)")
                                             else
-                                                LA:Print("Export failed: " .. (err or "No sessions to export"))
+                                                LA:Print(
+                                                    "Export failed: " ..
+                                                        (err or
+                                                            "No sessions to export"))
                                             end
                                         end
                                     end
@@ -1187,22 +1199,29 @@ local options = {
                                     name = "|cffff0000Reset All History|r",
                                     desc = "WARNING: This will permanently delete ALL session history! (or /lahistory reset)",
                                     func = function()
-                                        StaticPopupDialogs["LA_RESET_ALL_SESSIONS_CONFIG"] = {
-                                            text = "|cffff0000Warning!|r\n\nThis will permanently delete ALL session history.\n\nAre you sure you want to continue?",
-                                            button1 = "Yes, Reset All",
-                                            button2 = "Cancel",
-                                            OnAccept = function()
-                                                if LA.SessionHistory then
-                                                    local count = LA.SessionHistory.ResetAllSessions()
-                                                    LA:Print("Session history reset. Deleted " .. count .. " session(s).")
-                                                end
-                                            end,
-                                            timeout = 0,
-                                            whileDead = true,
-                                            hideOnEscape = true,
-                                            preferredIndex = 3
-                                        }
-                                        StaticPopup_Show("LA_RESET_ALL_SESSIONS_CONFIG")
+                                        StaticPopupDialogs["LA_RESET_ALL_SESSIONS_CONFIG"] =
+                                            {
+                                                text = "|cffff0000Warning!|r\n\nThis will permanently delete ALL session history.\n\nAre you sure you want to continue?",
+                                                button1 = "Yes, Reset All",
+                                                button2 = "Cancel",
+                                                OnAccept = function()
+                                                    if LA.SessionHistory then
+                                                        local count =
+                                                            LA.SessionHistory
+                                                                .ResetAllSessions()
+                                                        LA:Print(
+                                                            "Session history reset. Deleted " ..
+                                                                count ..
+                                                                " session(s).")
+                                                    end
+                                                end,
+                                                timeout = 0,
+                                                whileDead = true,
+                                                hideOnEscape = true,
+                                                preferredIndex = 3
+                                            }
+                                        StaticPopup_Show(
+                                            "LA_RESET_ALL_SESSIONS_CONFIG")
                                     end
                                 }
                             },
@@ -1394,7 +1413,9 @@ function Config:OnEnable()
     AceConfigRegistry:RegisterOptionsTable(LA.CONST.METADATA.NAME,
                                            options.args.general)
 
-    LA.configFrame, LA.configFrameID = AceConfigDialog:AddToBlizOptions(LA.CONST.METADATA.NAME, LA.CONST.METADATA.NAME)
+    LA.configFrame, LA.configFrameID = AceConfigDialog:AddToBlizOptions(
+                                           LA.CONST.METADATA.NAME,
+                                           LA.CONST.METADATA.NAME)
     LA.configFrame.default = private.resetDB -- add reset function
 
     -- Fix sink config options

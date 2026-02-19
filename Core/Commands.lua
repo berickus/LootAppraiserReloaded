@@ -1,8 +1,3 @@
---[[
-    Commands.lua
-    Chat command handlers for LootAppraiser Reloaded
-]]
-
 local LA = select(2, ...)
 
 local Commands = {}
@@ -16,7 +11,7 @@ local private = {}
 ]]
 function Commands.Register()
     LA.Debug.Log("Commands.Register()")
-    
+
     -- Register /lahistory command
     LA:RegisterChatCommand("lahistory", private.HandleHistoryCommand)
 end
@@ -31,26 +26,26 @@ end
 ]]
 function private.HandleHistoryCommand(input)
     LA.Debug.Log("HandleHistoryCommand: " .. tostring(input))
-    
+
     local args = {}
     for word in (input or ""):gmatch("%S+") do
         table.insert(args, word:lower())
     end
-    
+
     local subcommand = args[1]
-    
+
     if not subcommand or subcommand == "" then
         -- Open history UI
         LA.SessionHistoryUI.Show()
-        
+
     elseif subcommand == "reset" then
         -- Confirm and reset all sessions
         private.ConfirmReset()
-        
+
     elseif subcommand == "export" then
         -- Export all sessions
         private.ExportAll()
-        
+
     elseif subcommand == "save" then
         -- Save current session
         if LA.Session.IsRunning() then
@@ -58,10 +53,10 @@ function private.HandleHistoryCommand(input)
         else
             LA:Print("No active session to save.")
         end
-        
+
     elseif subcommand == "help" then
         private.ShowHelp()
-        
+
     else
         LA:Print("Unknown subcommand: " .. subcommand)
         private.ShowHelp()
@@ -90,7 +85,8 @@ function private.ConfirmReset()
         button2 = "Cancel",
         OnAccept = function()
             local count = LA.SessionHistory.ResetAllSessions()
-            LA:Print("Session history reset. Deleted " .. count .. " session(s).")
+            LA:Print("Session history reset. Deleted " .. count ..
+                         " session(s).")
         end,
         timeout = 0,
         whileDead = true,
@@ -105,21 +101,21 @@ end
 ]]
 function private.ExportAll()
     local json, err = LA.SessionHistory.ExportAllSessionsToJSON()
-    
+
     if not json then
         LA:Print("Export failed: " .. (err or "No sessions to export"))
         return
     end
-    
+
     -- Show export dialog
     local AceGUI = LibStub("AceGUI-3.0")
-    
+
     local exportFrame = AceGUI:Create("Frame")
     exportFrame:SetTitle("Export All Sessions")
     exportFrame:SetWidth(600)
     exportFrame:SetHeight(400)
     exportFrame:SetLayout("Fill")
-    
+
     local editBox = AceGUI:Create("MultiLineEditBox")
     editBox:SetLabel("JSON Data (select all and copy with Ctrl+C):")
     editBox:SetText(json)
@@ -127,18 +123,18 @@ function private.ExportAll()
     editBox:SetFullHeight(true)
     editBox:DisableButton(true)
     exportFrame:AddChild(editBox)
-    
+
     -- Select all text when focused
-    editBox.editBox:SetScript("OnEditFocusGained", function(self)
-        self:HighlightText()
-    end)
-    
+    editBox.editBox:SetScript("OnEditFocusGained",
+                              function(self) self:HighlightText() end)
+
     -- Focus and select all
     C_Timer.After(0.1, function()
         editBox:SetFocus()
         editBox.editBox:HighlightText()
     end)
-    
+
     local sessionCount = LA.SessionHistory.GetSessionCount()
-    LA:Print("Exported " .. sessionCount .. " session(s) to JSON. Select all and copy (Ctrl+A, Ctrl+C)")
+    LA:Print("Exported " .. sessionCount ..
+                 " session(s) to JSON. Select all and copy (Ctrl+A, Ctrl+C)")
 end

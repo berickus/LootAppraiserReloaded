@@ -1,8 +1,3 @@
---[[
-    PriceSources.lua
-    Price source management and item value lookups
-]]
-
 local LA = select(2, ...)
 
 local PriceSources = {}
@@ -15,8 +10,9 @@ local OEMarketInfo = OEMarketInfo
 local BlizzardVendorSell = 1
 
 -- Wow APIs
-local GetItemInfo, StaticPopupDialogs, StaticPopup_Show =
-    GetItemInfo, StaticPopupDialogs, StaticPopup_Show
+local GetItemInfo, StaticPopupDialogs, StaticPopup_Show = GetItemInfo,
+                                                          StaticPopupDialogs,
+                                                          StaticPopup_Show
 local OKAY = OKAY
 
 --[[------------------------------------------------------------------------
@@ -69,7 +65,8 @@ function PriceSources.Prepare()
         }
         StaticPopup_Show("LA_NO_PRICESOURCES")
 
-        LA:Print("|cffff0000LootAppraiser Reloaded disabled.|r (see popup window for further details)")
+        LA:Print(
+            "|cffff0000LootAppraiser Reloaded disabled.|r (see popup window for further details)")
         LA:Disable()
         return
     end
@@ -79,11 +76,12 @@ function PriceSources.Prepare()
 
     if priceSource == "Custom" then
         local isValid = LA.TSM.ParseCustomPrice(
-            LA.GetFromDb("pricesource", "customPriceSource"))
+                            LA.GetFromDb("pricesource", "customPriceSource"))
         if not isValid then
             StaticPopupDialogs["LA_INVALID_CUSTOM_PRICESOURCE"] = {
                 text = "|cffff0000Attention!|r You have selected 'Custom' as price source but your formular is invalid (see TSM documentation for detailed custom price source informations).\n\n" ..
-                    (LA.GetFromDb("pricesource", "customPriceSource") or "-empty-"),
+                    (LA.GetFromDb("pricesource", "customPriceSource") or
+                        "-empty-"),
                 button1 = OKAY,
                 timeout = 0,
                 whileDead = true,
@@ -111,11 +109,12 @@ end
     Get item value based on the selected/requested price source
 --------------------------------------------------------------------------]]
 function PriceSources.GetItemValue(itemID, priceSource)
-    local currentSource = LA.CONST.PRICE_SOURCE[LA.GetFromDb("pricesource", "source")] or ""
+    local currentSource = LA.CONST.PRICE_SOURCE[LA.GetFromDb("pricesource",
+                                                             "source")] or ""
 
     if LA.Util.startsWith(currentSource, "OE:") or
-       LA.Util.startsWith(currentSource, "AN:") or
-       LA.Util.startsWith(currentSource, "BLIZ:") then
+        LA.Util.startsWith(currentSource, "AN:") or
+        LA.Util.startsWith(currentSource, "BLIZ:") then
 
         if priceSource == "VendorSell" then
             return select(11, GetItemInfo(itemID)) or 0
@@ -130,7 +129,7 @@ function PriceSources.GetItemValue(itemID, priceSource)
 
         elseif priceSource == "Auctionator" then
             return Auctionator.API.v1.GetAuctionPriceByItemID(
-                "LootAppraiserReloaded", itemID)
+                       "LootAppraiserReloaded", itemID)
 
         else
             -- Battle pet handling
@@ -159,12 +158,30 @@ function PriceSources.ResolveForItem(itemID, basePriceSource)
     if LA.db.profile.general.useSubClasses == true then
         local class = select(6, GetItemInfo(itemID)) or 0
         local classOverrides = {
-            ["Armor"]       = { enabled = LA.db.profile.classTypeArmor,       source = LA.db.profile.classTypeArmorPriceSource },
-            ["Consumable"]  = { enabled = LA.db.profile.classTypeConsumable,  source = LA.db.profile.classTypeConsumablePriceSource },
-            ["Recipe"]      = { enabled = LA.db.profile.classTypeRecipe,      source = LA.db.profile.classTypeRecipePriceSource },
-            ["Tradeskill"]  = { enabled = LA.db.profile.classTypeTradeskill,  source = LA.db.profile.classTypeTradeskillPriceSource },
-            ["Weapon"]      = { enabled = LA.db.profile.classTypeWeapon,      source = LA.db.profile.classTypeWeaponPriceSource },
-            ["Quest"]       = { enabled = LA.db.profile.classTypeQuest,       source = LA.db.profile.classTypeQuestPriceSource },
+            ["Armor"] = {
+                enabled = LA.db.profile.classTypeArmor,
+                source = LA.db.profile.classTypeArmorPriceSource
+            },
+            ["Consumable"] = {
+                enabled = LA.db.profile.classTypeConsumable,
+                source = LA.db.profile.classTypeConsumablePriceSource
+            },
+            ["Recipe"] = {
+                enabled = LA.db.profile.classTypeRecipe,
+                source = LA.db.profile.classTypeRecipePriceSource
+            },
+            ["Tradeskill"] = {
+                enabled = LA.db.profile.classTypeTradeskill,
+                source = LA.db.profile.classTypeTradeskillPriceSource
+            },
+            ["Weapon"] = {
+                enabled = LA.db.profile.classTypeWeapon,
+                source = LA.db.profile.classTypeWeaponPriceSource
+            },
+            ["Quest"] = {
+                enabled = LA.db.profile.classTypeQuest,
+                source = LA.db.profile.classTypeQuestPriceSource
+            }
         }
 
         local override = classOverrides[class]

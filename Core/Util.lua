@@ -3,20 +3,21 @@ local LA = select(2, ...)
 local Util = {}
 LA.Util = Util
 
-local tocVersion = select(4, GetBuildInfo())  -- Returns TOC version (e.g., 110205)
+local tocVersion = select(4, GetBuildInfo()) -- Returns TOC version (e.g., 110205)
 Util.TOCVersion = tocVersion
 
 -- Classic Versions (check first - more specific)
-Util.IsClassicEra = (tocVersion < 20000)                         -- Classic Era (1.x)
-Util.IsTBCClassic = (tocVersion >= 20000 and tocVersion < 30000)   -- TBC Classic (2.x) - legacy
+Util.IsClassicEra = (tocVersion < 20000) -- Classic Era (1.x)
+Util.IsTBCClassic = (tocVersion >= 20000 and tocVersion < 30000) -- TBC Classic (2.x) - legacy
 Util.IsWrathClassic = (tocVersion >= 30000 and tocVersion < 40000) -- Wrath Classic (3.x) - legacy
 Util.IsCataClassic = (tocVersion >= 40000 and tocVersion < 50000) -- Cata Classic (4.x) - legacy
 Util.IsMoPClassic = (tocVersion >= 50000 and tocVersion < 60000) -- MoP Classic (5.x)
-Util.IsClassic = Util.IsClassicEra or Util.IsMoPClassic or Util.IsCataClassic or Util.IsWrathClassic or Util.IsTBCClassic
+Util.IsClassic = Util.IsClassicEra or Util.IsMoPClassic or Util.IsCataClassic or
+                     Util.IsWrathClassic or Util.IsTBCClassic
 
 -- Retail Expansions
-Util.IsRetail = (tocVersion >= 100000)                           -- Dragonflight+ (10.x+)
-Util.IsTWW = (tocVersion >= 110200 and tocVersion < 120000)      -- The War Within (11.x)
+Util.IsRetail = (tocVersion >= 100000) -- Dragonflight+ (10.x+)
+Util.IsTWW = (tocVersion >= 110200 and tocVersion < 120000) -- The War Within (11.x)
 Util.IsMidnight = (tocVersion >= 120000)
 
 Util.IsModern = Util.IsRetail or Util.IsTWW or Util.IsMidnight
@@ -92,9 +93,7 @@ function Util.ParseItemLink(itemLink)
 
     -- Split the item string by ":"
     local parts = {}
-    for v in itemString:gmatch("([^:]*):?") do
-        parts[#parts + 1] = v
-    end
+    for v in itemString:gmatch("([^:]*):?") do parts[#parts + 1] = v end
 
     local itemID = tonumber(parts[1])
     if not itemID then return nil end
@@ -121,9 +120,7 @@ function Util.ParseItemLink(itemLink)
     local bonusStart = 14
     for i = bonusStart, bonusStart + numBonusIDs - 1 do
         local bid = tonumber(parts[i])
-        if bid then
-            bonusIds[#bonusIds + 1] = bid
-        end
+        if bid then bonusIds[#bonusIds + 1] = bid end
     end
 
     -- After bonus IDs comes numModifiers then pairs of (type, value)
@@ -168,10 +165,11 @@ function Util.TableToJSON(val, indent, currentIndent)
     elseif type(val) == "string" then
         -- Escape special characters
         local escaped = val:gsub('\\', '\\\\'):gsub('"', '\\"')
-                           :gsub('\n', '\\n'):gsub('\r', '\\r')
-                           :gsub('\t', '\\t')
+                            :gsub('\n', '\\n'):gsub('\r', '\\r')
+                            :gsub('\t', '\\t')
         -- Strip WoW color codes for cleaner JSON
-        escaped = escaped:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub("|H.-|h", ""):gsub("|h", "")
+        escaped = escaped:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):gsub(
+                      "|H.-|h", ""):gsub("|h", "")
         return '"' .. escaped .. '"'
     elseif type(val) == "table" then
         -- Determine if array (sequential integer keys starting at 1)
@@ -199,25 +197,31 @@ function Util.TableToJSON(val, indent, currentIndent)
         local parts = {}
         if isArray then
             for i = 1, maxN do
-                parts[#parts + 1] = nextIndent .. Util.TableToJSON(val[i], indent, nextIndent)
+                parts[#parts + 1] = nextIndent ..
+                                        Util.TableToJSON(val[i], indent,
+                                                         nextIndent)
             end
             if #parts == 0 then return "[]" end
-            return "[\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent .. "]"
+            return
+                "[\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent ..
+                    "]"
         else
             -- Sort keys for consistent output
             local keys = {}
-            for k in pairs(val) do
-                keys[#keys + 1] = k
-            end
+            for k in pairs(val) do keys[#keys + 1] = k end
             table.sort(keys, function(a, b)
                 return tostring(a) < tostring(b)
             end)
             for _, k in ipairs(keys) do
                 local keyStr = '"' .. tostring(k) .. '"'
-                parts[#parts + 1] = nextIndent .. keyStr .. ": " .. Util.TableToJSON(val[k], indent, nextIndent)
+                parts[#parts + 1] = nextIndent .. keyStr .. ": " ..
+                                        Util.TableToJSON(val[k], indent,
+                                                         nextIndent)
             end
             if #parts == 0 then return "{}" end
-            return "{\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent .. "}"
+            return
+                "{\n" .. table.concat(parts, ",\n") .. "\n" .. currentIndent ..
+                    "}"
         end
     else
         return '"' .. tostring(val) .. '"'

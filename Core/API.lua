@@ -1,11 +1,6 @@
---[[
-    API.lua
-    Public API and module registration for LootAppraiser Reloaded
-]]
-
 local LA = select(2, ...)
 
-local private = { modules = {} }
+local private = {modules = {}}
 
 -- Global API object
 LA_API = {}
@@ -19,17 +14,11 @@ function LA_API.RegisterModule(theModule)
     private.modules[theModule.name] = theModule
 end
 
-function LA_API.GetVersion()
-    return LA.CONST.METADATA.VERSION
-end
+function LA_API.GetVersion() return LA.CONST.METADATA.VERSION end
 
-function LA_API.GetCurrentSession()
-    return LA.Session.GetCurrentSession()
-end
+function LA_API.GetCurrentSession() return LA.Session.GetCurrentSession() end
 
-function LA_API.PauseSession()
-    LA.Session.Pause()
-end
+function LA_API.PauseSession() LA.Session.Pause() end
 
 function LA_API.StartSession(qualityFilter, priceSource, ...)
     if not qualityFilter or not priceSource then return end
@@ -50,16 +39,10 @@ function LA_API.StartSession(qualityFilter, priceSource, ...)
     LA.Session.Start(true)
     LA.Session.New()
 
-    if startPaused then
-        LA.Session.Pause()
-    end
+    if startPaused then LA.Session.Pause() end
 end
 
-function LA.GetModules()
-    return private.modules
-end
+function LA.GetModules() return private.modules end
 
 -- Legacy API for older LAC versions
-function LA:RegisterModule(theModule)
-    LA_API.RegisterModule(theModule)
-end
+function LA:RegisterModule(theModule) LA_API.RegisterModule(theModule) end

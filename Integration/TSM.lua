@@ -1,5 +1,3 @@
--- LootAppraiserReloaded_TSM.lua --
--- local LA = LibStub("AceAddon-3.0"):GetAddon("LootAppraiserReloaded")
 local LA = select(2, ...)
 
 local TSM = {}

@@ -1,8 +1,3 @@
---[[
-    LootProcessing.lua
-    Core loot processing: item handling, gold alerts, notifications, counters
-]]
-
 local LA = select(2, ...)
 
 local LootProcessing = {}
@@ -17,13 +12,16 @@ local LibParse = LibStub:GetLibrary("LibParse")
 
 -- Wow APIs
 local GetItemInfo, IsInGroup, UnitGUID, GetUnitName, GetBestMapForUnit,
-      PlaySoundFile, SendAddonMessage, IsShiftKeyDown =
-    GetItemInfo, IsInGroup, UnitGUID, GetUnitName, C_Map.GetBestMapForUnit,
-    PlaySoundFile, C_ChatInfo.SendAddonMessage, IsShiftKeyDown
+      PlaySoundFile, SendAddonMessage, IsShiftKeyDown = GetItemInfo, IsInGroup,
+                                                        UnitGUID, GetUnitName,
+                                                        C_Map.GetBestMapForUnit,
+                                                        PlaySoundFile,
+                                                        C_ChatInfo.SendAddonMessage,
+                                                        IsShiftKeyDown
 
 -- Lua APIs
-local tonumber, tostring, floor, pairs, gsub, time =
-    tonumber, tostring, floor, pairs, gsub, time
+local tonumber, tostring, floor, pairs, gsub, time = tonumber, tostring, floor,
+                                                     pairs, gsub, time
 
 local LootAppraiserReloaded_GroupLoot = LootAppraiserReloaded_GroupLoot
 
@@ -33,36 +31,48 @@ local LootAppraiserReloaded_GroupLoot = LootAppraiserReloaded_GroupLoot
 function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
     LA.Debug.Log("handleItemLooted itemID=%s", itemID)
     LA.Debug.Log("*****Source: " .. tostring(source))
-    LA.Debug.Log("  " .. tostring(itemID) .. ": " .. tostring(itemLink) .. " x" .. tostring(quantity))
-    LA.Debug.Log("  " .. tostring(itemID) .. ": " .. tostring(gsub(tostring(itemLink), "\124", "\124\124")))
+    LA.Debug.Log(
+        "  " .. tostring(itemID) .. ": " .. tostring(itemLink) .. " x" ..
+            tostring(quantity))
+    LA.Debug.Log("  " .. tostring(itemID) .. ": " ..
+                     tostring(gsub(tostring(itemLink), "\124", "\124\124")))
 
     if not LA.Session.IsRunning() then return end
 
     -- Settings
-    local qualityFilter = tonumber(LA.GetFromDb("notification", "qualityFilter"))
-    local priceSource = LA.PriceSources.ResolveForItem(itemID, LA.GetFromDb("pricesource", "source"))
+    local qualityFilter =
+        tonumber(LA.GetFromDb("notification", "qualityFilter"))
+    local priceSource = LA.PriceSources.ResolveForItem(itemID, LA.GetFromDb(
+                                                           "pricesource",
+                                                           "source"))
     LA.Debug.Log("Resolved price source: " .. tostring(priceSource))
 
     local ignoreSoulboundItems = LA.GetFromDb("general", "ignoreSoulboundItems")
     local addItem2List = true
     local disenchanted = false
-    local showLootedItemValueGroup = LA.GetFromDb("display", "showLootedItemValueGroup")
-    local addGroupDropsToLootedItemList = LA.GetFromDb("display", "addGroupDropsToLootedItemList")
+    local showLootedItemValueGroup = LA.GetFromDb("display",
+                                                  "showLootedItemValueGroup")
+    local addGroupDropsToLootedItemList =
+        LA.GetFromDb("display", "addGroupDropsToLootedItemList")
     local showGroupLootAlerts = LA.GetFromDb("display", "showGroupLootAlerts")
     LA.Debug.Log("showGroupLootAlerts: " .. tostring(showGroupLootAlerts))
 
-    local showGroupLoot = source and (showLootedItemValueGroup or addGroupDropsToLootedItemList)
+    local showGroupLoot = source and
+                              (showLootedItemValueGroup or
+                                  addGroupDropsToLootedItemList)
     LA.Debug.Log("showGroupLoot = %s", tostring(showGroupLoot))
 
     -- Check item quality
     local quality = select(3, GetItemInfo(itemID)) or 0
     if quality < qualityFilter then
-        LA.Debug.Log("  " .. tostring(itemID) .. ": item quality (" .. tostring(quality) ..
-            ") < filter (" .. tostring(qualityFilter) .. ") -> ignore item")
+        LA.Debug.Log("  " .. tostring(itemID) .. ": item quality (" ..
+                         tostring(quality) .. ") < filter (" ..
+                         tostring(qualityFilter) .. ") -> ignore item")
         return
     end
-    LA.Debug.Log("  " .. tostring(itemID) .. ": item quality (" .. tostring(quality) ..
-        ") >= filter (" .. tostring(qualityFilter) .. ")")
+    LA.Debug.Log("  " .. tostring(itemID) .. ": item quality (" ..
+                     tostring(quality) .. ") >= filter (" ..
+                     tostring(qualityFilter) .. ")")
 
     -- Blacklist check
     if LA.IsItemBlacklisted(itemID) then
@@ -77,14 +87,17 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
 
     -- Special handling for poor quality items
     if quality == 0 then
-        LA.Debug.Log("  " .. tostring(itemID) .. ": poor quality -> price source 'VendorSell'")
+        LA.Debug.Log("  " .. tostring(itemID) ..
+                         ": poor quality -> price source 'VendorSell'")
     end
 
     -- Get single item value
-    local singleItemValue = LA.PriceSources.GetItemValue(itemID, priceSource) or 0
+    local singleItemValue = LA.PriceSources.GetItemValue(itemID, priceSource) or
+                                0
     LA.Debug.Log("SIV price source: " .. tostring(singleItemValue))
     LA.Debug.Log("PriceSource: " .. tostring(priceSource))
-    LA.Debug.Log("  " .. tostring(itemID) .. ": single item value: " .. tostring(singleItemValue))
+    LA.Debug.Log("  " .. tostring(itemID) .. ": single item value: " ..
+                     tostring(singleItemValue))
 
     -- Special handling for soulbound items and disenchant value
     if singleItemValue == 0 and quality > 0 then
@@ -93,17 +106,22 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
         if ignoreSoulboundItems then
             addItem2List = false
             singleItemValue = tostring(blizVendorPrice) or 0
-            LA.Debug.Log("ignoreSoulBoundItems is on. No output to loot window.")
+            LA.Debug
+                .Log("ignoreSoulBoundItems is on. No output to loot window.")
         else
             addItem2List = true
             singleItemValue = tostring(blizVendorPrice) or 0
-            LA.Debug.Log("ignoreSoulBoundItems is off. Showing VendorSell: " .. tostring(blizVendorPrice))
+            LA.Debug.Log("ignoreSoulBoundItems is off. Showing VendorSell: " ..
+                             tostring(blizVendorPrice))
         end
 
         if LA.GetFromDb("pricesource", "useDisenchantValue", "TSM_REQUIRED") then
-            singleItemValue = LA.PriceSources.GetItemValue(itemID, "Destroy") or 0
+            singleItemValue = LA.PriceSources.GetItemValue(itemID, "Destroy") or
+                                  0
             disenchanted = true
-            LA.Debug.Log("  " .. tostring(itemID) .. ": single item value (de): " .. tostring(singleItemValue))
+            LA.Debug.Log("  " .. tostring(itemID) ..
+                             ": single item value (de): " ..
+                             tostring(singleItemValue))
         end
     end
 
@@ -121,7 +139,8 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
         itemValue = singleItemValue
         LA.Debug.Log("itemValue: " .. tostring(itemValue))
         LA.Debug.Log("quality: " .. tostring(quality))
-        LA.UI.AddItem2LootCollectedList(itemID, itemLink, quantity, itemValue, false, source, disenchanted)
+        LA.UI.AddItem2LootCollectedList(itemID, itemLink, quantity, itemValue,
+                                        false, source, disenchanted)
 
         if LA.Session.IsRunning() then
             LogLoot(itemID, itemLink, itemValue)
@@ -131,7 +150,8 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
     end
 
     -- Gold alert thresholds
-    private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity, quality, source, showGroupLoot)
+    private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity,
+                              quality, source, showGroupLoot)
 
     LA.UI.RefreshUIs()
 
@@ -158,11 +178,14 @@ end
 --[[------------------------------------------------------------------------
     Gold Alert Threshold processing
 --------------------------------------------------------------------------]]
-function private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity, quality, source, showGroupLoot)
+function private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity,
+                                   quality, source, showGroupLoot)
     local goldValue = floor(singleItemValue / 10000)
     local gatA = tonumber(LA.GetFromDb("notification", "goldAlertThresholdA"))
-    local gatB = tonumber(LA.GetFromDb("notification", "goldAlertThresholdB")) or 0
-    local gatC = tonumber(LA.GetFromDb("notification", "goldAlertThresholdC")) or 0
+    local gatB =
+        tonumber(LA.GetFromDb("notification", "goldAlertThresholdB")) or 0
+    local gatC =
+        tonumber(LA.GetFromDb("notification", "goldAlertThresholdC")) or 0
     local gatSoundToPlay = ""
 
     LA.Debug.Log("gatA: " .. gatA)
@@ -188,9 +211,7 @@ function private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity, 
 
     -- Party loot suffix
     local partyLootSuffix = ""
-    if source then
-        partyLootSuffix = " (|cFF2DA6ED" .. source .. "|r)"
-    end
+    if source then partyLootSuffix = " (|cFF2DA6ED" .. source .. "|r)" end
 
     -- Increment noteworthy counter
     private.IncNoteworthyItemCounter(quantity, source)
@@ -201,25 +222,31 @@ function private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity, 
         local qtyValue = singleItemValue * tonumber(quantity)
         local formatValue = LA.Util.MoneyToString(qtyValue) or 0
 
-        LA:Pour(itemLink .. " x" .. quantity .. ": " .. formatValue .. partyLootSuffix)
+        LA:Pour(itemLink .. " x" .. quantity .. ": " .. formatValue ..
+                    partyLootSuffix)
 
         if tonumber(quantity) > 1 then
-            LA.UI.UpdateLastNoteworthyItemUI(itemLink, quantity, singleItemValue, formatValue)
+            LA.UI.UpdateLastNoteworthyItemUI(itemLink, quantity,
+                                             singleItemValue, formatValue)
         else
-            LA.UI.UpdateLastNoteworthyItemUI(itemLink, quantity, singleItemValue, formattedValue)
+            LA.UI.UpdateLastNoteworthyItemUI(itemLink, quantity,
+                                             singleItemValue, formattedValue)
         end
 
         -- Toast notification
         if LA.GetFromDb("notification", "enableToasts") then
-            local name, _, _, _, _, _, _, _, _, texturePath = GetItemInfo(itemID)
-            LibToast:Spawn("LootAppraiserReloaded", name, texturePath, quality, quantity, formatValue, source)
+            local name, _, _, _, _, _, _, _, _, texturePath =
+                GetItemInfo(itemID)
+            LibToast:Spawn("LootAppraiserReloaded", name, texturePath, quality,
+                           quantity, formatValue, source)
         end
     end
 
     -- Update mapID if changed
     if LA.Session.GetCurrentSession("mapID") ~= GetBestMapForUnit("player") then
         LA.Debug.Log("  current vs. session mapID: %s vs. %s",
-            GetBestMapForUnit("player"), LA.Session.GetCurrentSession("mapID"))
+                     GetBestMapForUnit("player"),
+                     LA.Session.GetCurrentSession("mapID"))
         LA.Session.SetCurrentSession("mapID", GetBestMapForUnit("player"))
     end
 
@@ -240,7 +267,7 @@ function private.PlayGATSound(gatTier, source)
     elseif source == nil and not IsInGroup("player") then
         shouldPlay = true
     elseif source == nil and IsInGroup("player") and
-           LA.GetFromDb("display", "showGroupLootAlerts") == false then
+        LA.GetFromDb("display", "showGroupLootAlerts") == false then
         shouldPlay = true
     end
 
@@ -256,11 +283,12 @@ end
     Handle looted currency (gold/silver/copper drops)
 --------------------------------------------------------------------------]]
 function LootProcessing.HandleCurrencyLooted(lootedCopper)
-    local totalLootedCurrency = (LA.Session.GetCurrentSession("totalLootedCurrency") or 0) + lootedCopper
+    local totalLootedCurrency = (LA.Session.GetCurrentSession(
+                                    "totalLootedCurrency") or 0) + lootedCopper
     LA.Session.SetCurrentSession("totalLootedCurrency", totalLootedCurrency)
 
     LA.Debug.Log("  handle currency: add " .. tostring(lootedCopper) ..
-        " copper -> new total: " .. tostring(totalLootedCurrency))
+                     " copper -> new total: " .. tostring(totalLootedCurrency))
 
     LA.UI.RefreshUIs()
 end
@@ -290,10 +318,11 @@ end
 --------------------------------------------------------------------------]]
 function private.IncLootedItemCounter(quantity, source)
     if source then return end
-    local lootedItemCounter = (LA.Session.GetCurrentSession("lootedItemCounter") or 0) + quantity
+    local lootedItemCounter =
+        (LA.Session.GetCurrentSession("lootedItemCounter") or 0) + quantity
     LA.Session.SetCurrentSession("lootedItemCounter", lootedItemCounter)
     LA.Debug.Log("    looted items counter: add " .. tostring(quantity) ..
-        " -> new total: " .. tostring(lootedItemCounter))
+                     " -> new total: " .. tostring(lootedItemCounter))
 end
 
 function private.AddItemValue2LootedItemValue(itemValue, source)
@@ -302,7 +331,7 @@ function private.AddItemValue2LootedItemValue(itemValue, source)
     if not source then
         totalItemValue = totalItemValue + itemValue
         LA.Debug.Log("    looted items value: add " .. tostring(itemValue) ..
-            " -> new total: " .. tostring(totalItemValue))
+                         " -> new total: " .. tostring(totalItemValue))
     end
 
     LA.Session.SetCurrentSession("liv", totalItemValue or 0)
@@ -315,16 +344,17 @@ function private.AddItemValue2LootedItemValue(itemValue, source)
     local totalItemValueGroup = LA.Session.GetCurrentSession("livGroup") or 0
     totalItemValueGroup = totalItemValueGroup + itemValue
     LA.Debug.Log("    group: looted items value: add " .. tostring(itemValue) ..
-        " -> new total: " .. tostring(totalItemValueGroup))
+                     " -> new total: " .. tostring(totalItemValueGroup))
     LA.Session.SetCurrentSession("livGroup", totalItemValueGroup or 0)
 end
 
 function private.IncNoteworthyItemCounter(quantity, source)
     if source then return end
-    local noteworthyItemCounter = (LA.Session.GetCurrentSession("noteworthyItemCounter") or 0) + quantity
+    local noteworthyItemCounter = (LA.Session.GetCurrentSession(
+                                      "noteworthyItemCounter") or 0) + quantity
     LA.Session.SetCurrentSession("noteworthyItemCounter", noteworthyItemCounter)
     LA.Debug.Log("    noteworthy items counter: add " .. tostring(quantity) ..
-        " -> new total: " .. tostring(noteworthyItemCounter))
+                     " -> new total: " .. tostring(noteworthyItemCounter))
 end
 
 function private.IncWoWTokenPercentage(source)
@@ -337,10 +367,11 @@ function private.IncWoWTokenPercentage(source)
         local percentage = totalItemValue / wowToken * 100
         LA.Session.SetCurrentSession("wowTokenPercentage", percentage)
         LA.Debug.Log(" WoW token price: " .. tostring(wowToken) ..
-            ", totalItemValue: " .. tostring(totalItemValue) ..
-            ", percentage: " .. percentage)
+                         ", totalItemValue: " .. tostring(totalItemValue) ..
+                         ", percentage: " .. percentage)
     else
-        LA.Debug.Log("WoW token price unavailable, skipping token percentage update.")
+        LA.Debug.Log(
+            "WoW token price unavailable, skipping token percentage update.")
     end
 end
 

@@ -1,26 +1,3 @@
---[[
-    KillTracker.lua
-    NPC kill tracking with version-aware strategy:
-
-    CLASSIC:  COMBAT_LOG_EVENT_UNFILTERED → PARTY_KILL sub-event
-              Full access to combat log data.
-
-    RETAIL (12.0+):  CLEU is fully blocked (RegisterEvent is protected).
-              Instead we use:
-        1. TryTrackFromLoot() - Called from Events.OnChatMsgLoot each time
-           an item is looted. Scans ALL loot slots via GetLootSourceInfo()
-           to collect every unique creature GUID — this is critical for
-           AoE looting where one loot window contains items from multiple
-           corpses. Also tries UnitGUID("npc") as a fast path.
-        2. LOOT_READY - Backup event, calls the same scan logic.
-        3. PLAYER_REGEN_ENABLED - When leaving combat, check target and
-           mouseover for dead NPCs (catches un-looted kills).
-
-    Data stored in session:
-        kills = { ["npcID"] = { name = "Kobold Miner", count = 3 }, ... }
-        totalKills, uniqueKills
-]]
-
 local LA = select(2, ...)
 
 local KillTracker = {}
@@ -29,8 +6,14 @@ LA.KillTracker = KillTracker
 local private = {}
 
 -- Lua APIs
-local pairs, tostring, tonumber, select, strsplit, bit, pcall, type =
-    pairs, tostring, tonumber, select, strsplit, bit, pcall, type
+local pairs, tostring, tonumber, select, strsplit, bit, pcall, type = pairs,
+                                                                      tostring,
+                                                                      tonumber,
+                                                                      select,
+                                                                      strsplit,
+                                                                      bit,
+                                                                      pcall,
+                                                                      type
 
 -- WoW APIs
 local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
@@ -56,13 +39,13 @@ local DEDUP_WINDOW = 120
 --[[------------------------------------------------------------------------
     Extract NPC ID from a creature GUID
     Format: "Creature-0-XXXX-XXXX-XXXX-NPCID-XXXX"
-    
+
     NOTE: WoW 12.0+ may pass GUIDs as secret values. Even after tostring(),
     the result may still be a secret value. We wrap ALL operations in pcall.
 --------------------------------------------------------------------------]]
 function KillTracker.ExtractNpcID(guid)
     if not guid then return nil end
-    
+
     -- Wrap everything in pcall since secret values can fail at any operation
     local ok, npcID = pcall(function()
         local guidStr = tostring(guid)
@@ -73,11 +56,9 @@ function KillTracker.ExtractNpcID(guid)
         end
         return select(6, strsplit("-", guidStr))
     end)
-    
-    if ok and npcID then
-        return npcID
-    end
-    
+
+    if ok and npcID then return npcID end
+
     return nil
 end
 
@@ -123,22 +104,20 @@ end
 
 --[[------------------------------------------------------------------------
     Safe GUID retrieval: handles secret values in WoW 12.0+
-    
+
     WoW 12.0+ returns GUIDs as "secret values" - a protected type that:
     - Cannot be used with string functions directly
     - tostring() may STILL return a secret value
     - Even comparisons like ~= "" can fail
-    
+
     We wrap EVERYTHING in pcall to be safe.
     Returns a plain string GUID or nil if unable to convert.
 --------------------------------------------------------------------------]]
 function private.SafeGUID(func, ...)
     -- Step 1: Call the function safely
     local callOk, rawResult = pcall(func, ...)
-    if not callOk or rawResult == nil then 
-        return nil 
-    end
-    
+    if not callOk or rawResult == nil then return nil end
+
     -- Step 2: Try to convert and validate in one protected block
     local convertOk, finalResult = pcall(function()
         local str = tostring(rawResult)
@@ -148,11 +127,9 @@ function private.SafeGUID(func, ...)
         end
         return nil
     end)
-    
-    if convertOk and finalResult then
-        return finalResult
-    end
-    
+
+    if convertOk and finalResult then return finalResult end
+
     return nil
 end
 
@@ -162,8 +139,8 @@ end
 function KillTracker.OnCombatLogEvent()
     if not LA.Session.IsRunning() then return end
 
-    local _, subEvent, _, sourceGUID, sourceName, sourceFlags,
-          _, destGUID, destName, destFlags = CombatLogGetCurrentEventInfo()
+    local _, subEvent, _, sourceGUID, sourceName, sourceFlags, _, destGUID,
+          destName, destFlags = CombatLogGetCurrentEventInfo()
 
     if subEvent ~= "PARTY_KILL" then return end
     if not destGUID or not destName then return end
@@ -174,7 +151,7 @@ function KillTracker.OnCombatLogEvent()
     if private.AlreadyCounted(destGUID) then return end
 
     LA.Debug.Log("KillTracker: PARTY_KILL (CLEU)  npcID=%s  name=%s",
-        tostring(npcID), tostring(destName))
+                 tostring(npcID), tostring(destName))
 
     private.MarkCounted(destGUID)
     private.RecordKill(npcID, destName)
@@ -208,15 +185,18 @@ function KillTracker.TryTrackFromLoot()
     local npcGuid = private.SafeGUID(UnitGUID, "npc")
     local npcName = private.SafeCall(UnitName, "npc")
 
-    LA.Debug.Log("KillTracker: TryTrackFromLoot  UnitGUID('npc')='%s'  UnitName('npc')='%s'",
+    LA.Debug.Log(
+        "KillTracker: TryTrackFromLoot  UnitGUID('npc')='%s'  UnitName('npc')='%s'",
         tostring(npcGuid or "nil"), tostring(npcName or "nil"))
 
     if npcGuid then
         processedThisCall[npcGuid] = true
         local npcID = KillTracker.ExtractNpcID(npcGuid)
         if npcID and not private.AlreadyCounted(npcGuid) then
-            local name = (npcName and npcName ~= "") and npcName or ("NPC-" .. npcID)
-            LA.Debug.Log("KillTracker: >> KILL from loot (npc unit)  npcID=%s  name=%s",
+            local name = (npcName and npcName ~= "") and npcName or
+                             ("NPC-" .. npcID)
+            LA.Debug.Log(
+                "KillTracker: >> KILL from loot (npc unit)  npcID=%s  name=%s",
                 tostring(npcID), name)
             private.MarkCounted(npcGuid)
             private.RecordKill(npcID, name)
@@ -230,12 +210,13 @@ function KillTracker.TryTrackFromLoot()
         local okNum, numSlots = pcall(GetNumLootItems)
         if okNum and numSlots then
             numSlots = tonumber(numSlots) or 0
-            LA.Debug.Log("KillTracker: Scanning %d loot slots for AoE sources", numSlots)
+            LA.Debug.Log("KillTracker: Scanning %d loot slots for AoE sources",
+                         numSlots)
 
             for slot = 1, numSlots do
                 -- GetLootSourceInfo may return secret values in 12.0+
                 local sourceGUID = private.SafeGUID(GetLootSourceInfo, slot)
-                
+
                 if sourceGUID and not processedThisCall[sourceGUID] then
                     processedThisCall[sourceGUID] = true
 
@@ -243,8 +224,10 @@ function KillTracker.TryTrackFromLoot()
                     if npcID and not private.AlreadyCounted(sourceGUID) then
                         -- We can't get the name per-corpse from GetLootSourceInfo,
                         -- so use UnitName("npc") if same type, else fallback to NPC-ID
-                        local name = (npcName and npcName ~= "") and npcName or ("NPC-" .. npcID)
-                        LA.Debug.Log("KillTracker: >> KILL from AoE loot slot %d  npcID=%s  name=%s  guid=%s",
+                        local name = (npcName and npcName ~= "") and npcName or
+                                         ("NPC-" .. npcID)
+                        LA.Debug.Log(
+                            "KillTracker: >> KILL from AoE loot slot %d  npcID=%s  name=%s  guid=%s",
                             slot, tostring(npcID), name, sourceGUID)
                         private.MarkCounted(sourceGUID)
                         private.RecordKill(npcID, name)
@@ -264,8 +247,10 @@ function KillTracker.TryTrackFromLoot()
         if guid and isDead then
             local npcID = KillTracker.ExtractNpcID(guid)
             if npcID and not private.AlreadyCounted(guid) then
-                local npcNameFinal = (name and name ~= "") and name or ("NPC-" .. npcID)
-                LA.Debug.Log("KillTracker: >> KILL from loot (target fallback)  npcID=%s  name=%s",
+                local npcNameFinal = (name and name ~= "") and name or
+                                         ("NPC-" .. npcID)
+                LA.Debug.Log(
+                    "KillTracker: >> KILL from loot (target fallback)  npcID=%s  name=%s",
                     tostring(npcID), npcNameFinal)
                 private.MarkCounted(guid)
                 private.RecordKill(npcID, npcNameFinal)
@@ -275,9 +260,11 @@ function KillTracker.TryTrackFromLoot()
     end
 
     if killsFound == 0 then
-        LA.Debug.Log("KillTracker: TryTrackFromLoot — could not identify kill source")
+        LA.Debug.Log(
+            "KillTracker: TryTrackFromLoot — could not identify kill source")
     else
-        LA.Debug.Log("KillTracker: TryTrackFromLoot — recorded %d kill(s)", killsFound)
+        LA.Debug.Log("KillTracker: TryTrackFromLoot — recorded %d kill(s)",
+                     killsFound)
     end
 end
 
@@ -325,7 +312,7 @@ function private.TryCountDeadUnit(unit)
     local npcName = (name and name ~= "") and name or ("NPC-" .. npcID)
 
     LA.Debug.Log("KillTracker: >> KILL from regen (dead %s)  npcID=%s  name=%s",
-        unit, tostring(npcID), npcName)
+                 unit, tostring(npcID), npcName)
 
     private.MarkCounted(guid)
     private.RecordKill(npcID, npcName)
@@ -342,14 +329,11 @@ function private.IsNPC(guid, flags)
             local guidType = strsplit("-", guidStr)
             return guidType == "Creature" or guidType == "Vehicle"
         end)
-        if ok and isCreature then
-            return true
-        end
+        if ok and isCreature then return true end
     end
     -- Fallback to flags check
-    if flags and type(flags) == "number" and bit.band(flags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then
-        return true
-    end
+    if flags and type(flags) == "number" and
+        bit.band(flags, COMBATLOG_OBJECT_TYPE_NPC) > 0 then return true end
     return false
 end
 
@@ -366,18 +350,17 @@ function private.RecordKill(npcID, npcName)
     local entry = kills[npcID]
     if entry then
         entry.count = entry.count + 1
-        if npcName and not npcName:match("^NPC%-") and entry.name:match("^NPC%-") then
-            entry.name = npcName
-        end
+        if npcName and not npcName:match("^NPC%-") and
+            entry.name:match("^NPC%-") then entry.name = npcName end
     else
-        kills[npcID] = { name = npcName or ("NPC-" .. npcID), count = 1 }
+        kills[npcID] = {name = npcName or ("NPC-" .. npcID), count = 1}
     end
 
     private.UpdateCounters(kills)
 
-    LA.Debug.Log("KillTracker: >> RECORDED  npcID=%s  name=%s  count=%d  | total=%d  unique=%d",
-        tostring(npcID), tostring(npcName),
-        kills[npcID].count,
+    LA.Debug.Log(
+        "KillTracker: >> RECORDED  npcID=%s  name=%s  count=%d  | total=%d  unique=%d",
+        tostring(npcID), tostring(npcName), kills[npcID].count,
         LA.Session.GetCurrentSession("totalKills") or 0,
         LA.Session.GetCurrentSession("uniqueKills") or 0)
 end
@@ -414,14 +397,18 @@ function KillTracker.GetSortedKills()
     local kills = KillTracker.GetKills()
     local sorted = {}
     for npcID, data in pairs(kills) do
-        sorted[#sorted + 1] = { npcID = npcID, name = data.name, count = data.count }
+        sorted[#sorted + 1] = {
+            npcID = npcID,
+            name = data.name,
+            count = data.count
+        }
     end
     table.sort(sorted, function(a, b) return a.count > b.count end)
     return sorted
 end
 
 function KillTracker.PrintSummary()
-    local total  = KillTracker.GetTotalKills()
+    local total = KillTracker.GetTotalKills()
     local unique = KillTracker.GetUniqueKills()
 
     if total == 0 then
@@ -429,8 +416,9 @@ function KillTracker.PrintSummary()
         return
     end
 
-    LA:Print(string.format("|cffffd100Kill Summary:|r  %d total kills  (%d unique NPCs)",
-        total, unique))
+    LA:Print(string.format(
+                 "|cffffd100Kill Summary:|r  %d total kills  (%d unique NPCs)",
+                 total, unique))
 
     local sorted = KillTracker.GetSortedKills()
     for _, entry in ipairs(sorted) do
@@ -441,16 +429,21 @@ end
 function KillTracker.GenerateKillsCSV(kills)
     if not kills or next(kills) == nil then return nil end
 
-    local lines = { "NPC ID,NPC Name,Kill Count" }
+    local lines = {"NPC ID,NPC Name,Kill Count"}
     local sorted = {}
     for npcID, data in pairs(kills) do
-        sorted[#sorted + 1] = { npcID = npcID, name = data.name, count = data.count }
+        sorted[#sorted + 1] = {
+            npcID = npcID,
+            name = data.name,
+            count = data.count
+        }
     end
     table.sort(sorted, function(a, b) return a.count > b.count end)
 
     for _, entry in ipairs(sorted) do
         local name = (entry.name or "Unknown"):gsub(",", ";"):gsub('"', '""')
-        table.insert(lines, string.format('%s,%s,%d', entry.npcID, name, entry.count))
+        table.insert(lines,
+                     string.format('%s,%s,%d', entry.npcID, name, entry.count))
     end
 
     return table.concat(lines, "\n")

@@ -15,7 +15,7 @@ local GetItemInfo, GetItemCount, C_Container, GetCoinTextureString =
 function Merchant.OnShow(event, msg)
     -- Auto sell gray items
     if LA.GetFromDb("general", "sellGrayItemsToVendor") == true then
-        LA.Session.Start(showMainUI)
+        LA.Session.Start(true)
         LA.Debug.Log("Merchant Opened")
         LA.Debug.Log("Auto Sell Grays: |cff00fe00Enabled|r")
         private.SellGrayItems()

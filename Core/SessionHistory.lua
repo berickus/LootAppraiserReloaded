@@ -6,13 +6,9 @@ LA.SessionHistory = SessionHistory
 local AceGUI = LibStub("AceGUI-3.0")
 
 -- Lua APIs
-local pairs, ipairs, table, time, date, tostring, tonumber, floor = pairs,
-                                                                    ipairs,
-                                                                    table, time,
-                                                                    date,
-                                                                    tostring,
-                                                                    tonumber,
-                                                                    floor
+local pairs, ipairs, table, time, date, tostring, floor = pairs, ipairs, table,
+                                                          time, date, tostring,
+                                                          floor
 
 -- WoW APIs
 local GetMapInfo, GetBestMapForUnit, GetUnitName, GetRealmName =
@@ -454,7 +450,7 @@ function SessionHistory.ShowRenamePopup(sessionID, currentName, callback)
     editBox:SetLabel("Session Name:")
     editBox:SetText(currentName)
     editBox:SetFullWidth(true)
-    editBox:SetCallback("OnEnterPressed", function(widget, event, text)
+    editBox:SetCallback("OnEnterPressed", function(_, event, text)
         if text and text ~= "" then
             SessionHistory.RenameSession(sessionID, text)
             if callback then callback() end
@@ -548,7 +544,7 @@ function SessionHistory.RefreshHistoryList()
         row:SetHighlight("Interface\\QuestFrame\\UI-QuestTitleHighlight")
 
         -- Left-click to rename
-        row:SetCallback("OnClick", function(widget, event, button)
+        row:SetCallback("OnClick", function(_, event, button)
             if button == "LeftButton" then
                 SessionHistory.ShowRenamePopup(session.id, session.name or
                                                    ("Session " .. session.id),

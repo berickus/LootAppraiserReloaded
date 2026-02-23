@@ -3,8 +3,6 @@ local LA = select(2, ...)
 local Init = {}
 LA.Init = Init
 
-local private = {}
-
 --[[------------------------------------------------------------------------
     Initialize the SavedVariables databases
 --------------------------------------------------------------------------]]
@@ -27,9 +25,7 @@ function LA.GetFromDb(grp, key, ...)
     local tsmRequired
     for i = 1, select('#', ...) do
         local opt = select(i, ...)
-        if opt == nil then
-            -- do nothing
-        elseif opt == "TSM_REQUIRED" then
+        if opt and opt == "TSM_REQUIRED" then
             tsmRequired = true
         end
     end

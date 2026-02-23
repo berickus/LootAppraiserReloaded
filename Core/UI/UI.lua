@@ -291,10 +291,6 @@ function UI.ShowMainWindow(showMainUI)
         end
     end)
 
-    private.MAIN_UI:SetCallback("OnClose", function(widget, event)
-        -- LA.Debug.Log("Session ended")
-    end)
-
     -- START: statustext
     -- local statusbg = CreateFrame("Button", nil, private.MAIN_UI.frame)
 
@@ -316,7 +312,7 @@ function UI.ShowMainWindow(showMainUI)
     })
 
     statusbg:SetBackdropColor(0.1, 0.1, 0.1, 0.5)
-    statusbg:SetBackdropBorderColor(0.4, 0.4, 0.4, x)
+    statusbg:SetBackdropBorderColor(0.4, 0.4, 0.4, 0.9)
 
     local statustext = statusbg:CreateFontString(nil, "OVERLAY",
                                                  "GameFontNormal")
@@ -329,16 +325,6 @@ function UI.ShowMainWindow(showMainUI)
 
     UI.RefreshStatusText()
     -- START: statustext
-
-    -- loot collected list --
-    local backdrop = {
-        -- bgFile = [[Interface\Tooltips\UI-Tooltip-Background]],
-        -- edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        edgeSize = 2,
-        insets = {left = 1, right = 1, top = 1, bottom = 1}
-    }
 
     local lootCollectedContainer = AceGUI:Create("SimpleGroup")
     lootCollectedContainer:SetFullWidth(true)
@@ -476,7 +462,7 @@ function UI.ShowMainWindow(showMainUI)
 
             GameTooltip:AddLine("Instance lockouts")
             if LA.Util.tablelength(private.resetInfo) > 0 then
-                for k, data in pairs(private.resetInfo) do
+                for _, data in pairs(private.resetInfo) do
                     GameTooltip:AddDoubleLine(
                         "|cffffffff" .. data.instanceName .. "|r",
                         "|cffffffff" .. date("!%X", data.endTime - time()) ..
@@ -934,9 +920,8 @@ function UI.UpdateLastNoteworthyItemUI(itemLink, quantity, singleItemValue,
                                        formattedValue)
 
     if private.LAST_NOTEWOTHYITEM_UI then
-        local qtyValue = 0
         if tonumber(quantity) > 1 then
-            qtyValue = tonumber(singleItemValue) * tonumber(quantity)
+            local qtyValue = tonumber(singleItemValue) * tonumber(quantity)
             local formattedItemValue = LA.Util.MoneyToString(qtyValue) or 0
             private.LAST_NOTEWOTHYITEM_UI:SetTitle(
                 itemLink .. "|cffffffff x" .. quantity .. ": " ..
@@ -951,7 +936,7 @@ function UI.UpdateLastNoteworthyItemUI(itemLink, quantity, singleItemValue,
 
 end
 
-function UI.UpdateLiteWindowUI(formattedValue)
+function UI.UpdateLiteWindowUI()
     if private.LITE_UI then
         local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
         -- LA.Debug.Log("LIV: " .. tostring(totalItemValue))
@@ -964,7 +949,7 @@ end
 
 -- add a given item to the top of the loot colletced list
 function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue,
-                                      noteworthyItemFound, source, disenchanted)
+                                      source, disenchanted)
     -- LA.Debug.Log("addItem2LootCollectedList(itemID=" .. itemID .. ", link=" .. tostring(link) .. ", quantity=" .. quantity .. ")")
 
     if source and not LA.GetFromDb("display", "addGroupDropsToLootedItemList") then
@@ -978,8 +963,7 @@ function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue,
 
     -- Updated to support quantity
     if tonumber(quantity) > 1 then
-        local qtyFormattedItemValue = 0
-        qtyFormattedItemValue = marketValue * tonumber(quantity)
+        local qtyFormattedItemValue = marketValue * tonumber(quantity)
         formattedItemValue = LA.Util.MoneyToString(qtyFormattedItemValue) or 0
         preparedText = " " .. link .. " x" .. quantity .. ": " ..
                            formattedItemValue
@@ -1090,52 +1074,6 @@ function private.OnBtnResetInstancesClick()
     -- LA.Debug.TableToString(LA.ResetInfo)
 end
 
--- Event handler for button 'sell trash'
--- function private.OnBtnSellTrashClick()
---     --Validate whether there is an NPC open and how many items sold
---     local itemCounter = 0
-
---     for n = 1, GetMerchantNumItems() do
---         local merchantItemName = select(1, GetMerchantItemInfo(n))
---         itemCounter = itemCounter + 1
---     end
-
---     --If not vendor open (unable to count vendor items) alert to go to merchant
---     if itemCounter == 0 then
---         LA:Print("Travel to a vendor first to sell your items.")
---         return
---     end
-
---     local itemsSold = 0
---     for bag=0, NUM_BAG_SLOTS do
---         for slot=1, C_Container.GetContainerNumSlots(bag) do
---             -- first: we sell all grays
---             local link = C_Container.GetContainerItemLink(bag, slot)
---             if link and link:find("ff9d9d9d") then			--Poor = ff9d9d9d
---                 C_Container.UseContainerItem(bag, slot)
---                 itemsSold = itemsSold + 1
---             end
-
---             --second: sell items in TSM group
---             if LA.GetFromDb("sellTrash", "tsmGroupEnabled", "TSM_REQUIRED") then
---                 local id = C_Container.GetContainerItemID(bag, slot)
---                 --if id and LA:isItemInList(id, trashItems) then
---                 if id and LA.TSM.IsItemInGroup(id, LA.GetFromDb("sellTrash", "tsmGroup")) then
---                     --LA.Debug.Log("  id=" .. id .. ", found=" .. tostring(trashItems["i:" .. id]) .. ", link=" .. link)
---                     C_Container.UseContainerItem(bag, slot)
---                     itemsSold = itemsSold + 1
---                 end
---             end
---         end
---     end
-
---     if itemsSold == 0 then
---         LA:Print("No items sold.")
---     else
---         LA:Print(tostring(itemsSold) .. " item(s) sold") --for " .. LA.Util.MoneyToString(moneyEarned))
---     end
--- end
-
 function private.OnBtnSellTrashClick()
 
     local merchantitems = GetMerchantNumItems() -- check if vendor is open first
@@ -1157,8 +1095,8 @@ function private.OnBtnSellTrashClick()
                         LA.Debug.Log("No itemID found for " .. itemLink ..
                                          " in bag slot " .. bag)
                     else
-                        local name, _, rarity, _, _, _, _, _, _ = GetItemInfo(
-                                                                      itemID)
+                        local _, _, rarity, _, _, _, _, _, _ = GetItemInfo(
+                                                                   itemID)
                         local itemInfo = GetItemInfo(itemID)
                         local currentItemValue =
                             private.GetItemValue(itemID, "VendorSell") or 0
@@ -1172,17 +1110,6 @@ function private.OnBtnSellTrashClick()
                         -- detect if rarity of 0 (poor gray item)
                         if rarity == 0 and currentItemValue ~= 0 then -- added currentItemValue
 
-                            -- --second: sell items in TSM group
-                            -- if LA.GetFromDb("sellTrash", "tsmGroupEnabled", "TSM_REQUIRED") then
-                            --     local id = C_Container.GetContainerItemID(bag, slot)
-                            --     --if id and LA:isItemInList(id, trashItems) then
-                            --     if id and LA.TSM.IsItemInGroup(id, LA.GetFromDb("sellTrash", "tsmGroup")) then
-                            --         --LA.Debug.Log("  id=" .. id .. ", found=" .. tostring(trashItems["i:" .. id]) .. ", link=" .. link)
-                            --         C_Container.UseContainerItem(bag, slot)
-                            --         --itemsSold = itemsSold + 1
-                            --     end
-                            -- end
-
                             rarityCounter = rarityCounter + 1
                             LA.Debug.Log(
                                 "selling gray item: " .. itemLink .. " x" ..
@@ -1194,8 +1121,6 @@ function private.OnBtnSellTrashClick()
                             -- if Verbose is enabled, then only show the total and don't do an output of the sale per item
                             if LA.db.profile.general
                                 .sellGrayItemsToVendorVerbose == true then
-
-                            else
                                 LA:Print(
                                     "Selling " .. itemLink .. " x" ..
                                         iStackCount .. ": " ..
@@ -1214,7 +1139,6 @@ function private.OnBtnSellTrashClick()
                         end
                     end
                 end
-                slot = slot + 1
             end
         end
 
@@ -1280,7 +1204,6 @@ function private.GetItemValue(itemID, priceSource)
 
             -- Blizzard's native pricing for vendor selling
         elseif priceSource == "VendorValue" then
-            local priceInfo = {}
             local BlizzardVendorSell = select(11, GetItemInfo(itemID)) or 0
             return BlizzardVendorSell
 
@@ -1292,28 +1215,20 @@ function private.GetItemValue(itemID, priceSource)
 
             -- Auctionator pricing
         elseif priceSource == "Auctionator" then
-            local priceInfo = {}
             -- Usage Auctionator.API.v1.GetAuctionPriceByItemID(string, number)
-            AuctionatorInfo = Auctionator.API.v1.GetAuctionPriceByItemID(
-                                  "LootAppraiserReloaded", itemID)
-            return AuctionatorInfo
+            return Auctionator.API.v1.GetAuctionPriceByItemID(
+                       "LootAppraiserReloaded", itemID)
 
         else
-            local itemLink
             -- battle pet handling
             local newItemID = LA.PetData.ItemID2Species(itemID)
             if newItemID == itemID then
-                itemLink = itemID
                 local priceInfo = {}
                 return priceInfo[priceSource]
             else
-                itemLink = newItemID
                 local priceInfo = {}
                 return priceInfo[priceSource]
             end
-
-            -- local priceInfo = {}
-            -- return priceInfo[priceSource]
         end
     else
         -- TSM price source

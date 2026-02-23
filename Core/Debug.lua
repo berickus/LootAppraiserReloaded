@@ -18,13 +18,13 @@ end
 
 function Debug.TableToString(t)
     local print_r_cache = {}
-    local function sub_print_r(t, indent)
-        if (print_r_cache[tostring(t)]) then
-            LA.Debug.Log(indent .. "*" .. tostring(t))
+    local function sub_print_r(tbl, indent)
+        if (print_r_cache[tostring(tbl)]) then
+            LA.Debug.Log(indent .. "*" .. tostring(tbl))
         else
-            print_r_cache[tostring(t)] = true
+            print_r_cache[tostring(tbl)] = true
             if (type(t) == "table") then
-                for pos, val in pairs(t) do
+                for pos, val in pairs(tbl) do
                     if (type(val) == "table") then
                         LA.Debug.Log(indent .. "[" .. pos .. "] => " ..
                                          tostring(t) .. " {")

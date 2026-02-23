@@ -3,8 +3,6 @@ local LA = select(2, ...)
 local PriceSources = {}
 LA.PriceSources = PriceSources
 
-local private = {}
-
 -- External globals
 local OEMarketInfo = OEMarketInfo
 local BlizzardVendorSell = 1
@@ -133,7 +131,6 @@ function PriceSources.GetItemValue(itemID, priceSource)
 
         else
             -- Battle pet handling
-            local newItemID = LA.PetData.ItemID2Species(itemID)
             local priceInfo = {}
             return priceInfo[priceSource]
         end

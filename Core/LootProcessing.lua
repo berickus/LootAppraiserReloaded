@@ -140,7 +140,7 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
         LA.Debug.Log("itemValue: " .. tostring(itemValue))
         LA.Debug.Log("quality: " .. tostring(quality))
         LA.UI.AddItem2LootCollectedList(itemID, itemLink, quantity, itemValue,
-                                        false, source, disenchanted)
+                                        source, disenchanted)
 
         if LA.Session.IsRunning() then
             LogLoot(itemID, itemLink, itemValue)
@@ -337,7 +337,7 @@ function private.AddItemValue2LootedItemValue(itemValue, source)
     LA.Session.SetCurrentSession("liv", totalItemValue or 0)
 
     if LA.UI.ShowLiteWindow then
-        LA.UI.UpdateLiteWindowUI(totalItemValue or 0)
+        LA.UI.UpdateLiteWindowUI()
     end
 
     -- Group value

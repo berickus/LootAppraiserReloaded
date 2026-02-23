@@ -149,14 +149,6 @@ end
 
 function TSM.GetGroupPaths(values) TSM_API.GetGroupPaths(values) end
 
-function TSM.IsGroupValid(value)
-    local itemString = TSM_API.ToItemString(value)
-    local itemLink = itemString and TSMAPI.GetItemLink(itemString)
-    if not itemLink then
-        -- Log whatever error you want
-    end
-end
-
 function TSM.GetGroupPathByItem(itemString)
     -- TSM 3
     if TSMAPI and TSMAPI.Groups and TSMAPI.Groups.GetPath then

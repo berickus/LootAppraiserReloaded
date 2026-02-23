@@ -29,7 +29,7 @@ local abs, floor, string, pairs, table, tonumber = abs, floor, string, pairs,
 -- based on Money.ToString from TSM 3/4
 local goldText, silverText, copperText = "|cffffd70ag|r", "|cffc7c7cfs|r",
                                          "|cffeda55fc|r"
-function Util.MoneyToString(money, ...)
+function Util.MoneyToString(money)
     money = tonumber(money)
     if not money then return end
 
@@ -102,7 +102,7 @@ function Util.ParseItemLink(itemLink)
     local itemName = itemLink:match("|h%[(.-)%]|h")
 
     -- Get item level from GetItemInfo (index 4 = item level in GetDetailedItemLevelInfo or select(4, GetItemInfo()))
-    local itemLevel = 0
+    local itemLevel
     if C_Item.GetDetailedItemLevelInfo then
         itemLevel = C_Item.GetDetailedItemLevelInfo(itemLink) or 0
     else
@@ -229,8 +229,8 @@ function Util.TableToJSON(val, indent, currentIndent)
 end
 
 function Util.split(str, sep)
-    local sep, fields = sep or ":", {}
-    local pattern = string.format("([^%s]+)", sep)
+    local separator, fields = sep or ":", {}
+    local pattern = string.format("([^%s]+)", separator)
     str:gsub(pattern, function(c) fields[#fields + 1] = c end)
     return fields
 end
@@ -255,12 +255,12 @@ function Util.StringToMoney(lootedCurrencyAsText)
         digitsCounter = digitsCounter + 1
     end)
 
-    local copper = 0
+    local copper
     -- gold, silver, copper (gold, silver copper)
     -- *10000 = gold to copper
     -- *100 = silver to copper
     -- Detect if ZandalariTroll to help count digits for the additional currency buff
-    local raceName, raceFile, raceID = UnitRace("player")
+    local _, _, raceID = UnitRace("player")
     if raceID == 31 then
         -- print("ZandalariTroll detected")
         -- ZT = Zandalari Troll

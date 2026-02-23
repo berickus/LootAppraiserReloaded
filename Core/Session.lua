@@ -99,8 +99,7 @@ end
 function private.PrepareNewSession()
     LA.Debug.Log("prepareNewSession")
     --    LA.Debug.Log("  savedLoot: %s items", LA.Util.tablelength(private.savedLoot))
-    local resetLIV = 0
-    LA.UI.UpdateLiteWindowUI(resetLIV) -- pass to Update Lite Window to reset session and make value zero
+    LA.UI.UpdateLiteWindowUI() -- pass to Update Lite Window to reset session and make value zero
 
     -- start: prepare session
     private.currentSession = {
@@ -124,7 +123,7 @@ function private.PrepareNewSession()
         livGroup = 0,
         player = GetUnitName("player", true) .. "-" .. GetRealmName()
     }
-    LA.UI.UpdateLiteWindowUI(liv)
+    LA.UI.UpdateLiteWindowUI()
 
     private.sessionPause = 0
     private.pauseStart = nil

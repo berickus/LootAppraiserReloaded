@@ -26,9 +26,7 @@ function LA_API.StartSession(qualityFilter, priceSource, ...)
     local startPaused
     for i = 1, select('#', ...) do
         local opt = select(i, ...)
-        if opt == nil then
-            -- do nothing
-        elseif opt == "START_PAUSED" then
+        if opt and  opt == "START_PAUSED" then
             startPaused = true
         end
     end

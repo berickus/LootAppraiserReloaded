@@ -85,7 +85,7 @@ local methods = {
 
     -- ["OnRelease"] = nil,
 
-    ["OnWidthSet"] = function(self, width) UpdateImageAnchor(self) end,
+    ["OnWidthSet"] = function(self, _) UpdateImageAnchor(self) end,
 
     ["SetText"] = function(self, text)
         self.label:SetText(text)

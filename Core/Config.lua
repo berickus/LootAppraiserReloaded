@@ -9,21 +9,15 @@ local private = {}
 local LibStub = LibStub
 local AceConfigRegistry = LibStub("AceConfigRegistry-3.0")
 local AceConfigDialog = LibStub("AceConfigDialog-3.0")
-local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub:GetLibrary("LibSharedMedia-3.0")
 
 -- Lua APIs
-local tostring, pairs, ipairs, table, tonumber, select, time, math, floor, date,
-      print, type, string, sort, gsub = tostring, pairs, ipairs, table,
-                                        tonumber, select, time, math, floor,
-                                        date, print, type, string, sort, gsub
+local tostring, pairs = tostring, pairs
 
 -- wow APIs
-local InterfaceOptions_AddCategory, SecondsToTime, GameFontHighlightSmall,
-      GetItemInfo, GetMapInfo, TUJTooltip, StaticPopupDialogs, StaticPopup_Show =
-    InterfaceOptions_AddCategory, SecondsToTime, GameFontHighlightSmall,
-    GetItemInfo, C_Map.GetMapInfo, TUJTooltip, StaticPopupDialogs,
-    StaticPopup_Show
+local TUJTooltip, StaticPopupDialogs, StaticPopup_Show = TUJTooltip,
+                                                         StaticPopupDialogs,
+                                                         StaticPopup_Show
 local DEFAULT_CHAT_FRAME = DEFAULT_CHAT_FRAME
 
 -- the config tabs

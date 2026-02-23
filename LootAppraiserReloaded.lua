@@ -95,7 +95,7 @@ function LA:ShowStartSessionDialog()
     -- Auto-start
     if LA.GetFromDb("general", "autoStartLA") == true then
         LA.Debug.Log("auto-start LA enabled")
-        LA.Session.Start(showMainUI)
+        LA.Session.Start(true)
         return
     end
 

@@ -3,10 +3,8 @@ local LA = select(2, ...)
 local Events = {}
 LA.Events = Events
 
-local private = {}
-
 -- Wow APIs
-local GetUnitName, UnitGUID, IsInGroup = GetUnitName, UnitGUID, IsInGroup
+local GetUnitName, UnitGUID = GetUnitName, UnitGUID
 
 -- Lua APIs
 local smatch, time, unpack, tostring = string.match, time, unpack, tostring
@@ -41,6 +39,7 @@ function Events.OnChatMsgLoot(event, msg)
         end
 
         local loottype, itemLink, quantity, source
+        source = 'Loot'
 
         if msg:match(PATTERN_LOOT_ITEM_SELF_MULTIPLE) then
             loottype = "## self (multi) ##"
@@ -84,6 +83,7 @@ function Events.OnTradeSkillCrafted(event, data)
     local loottype, itemLink, quantity, source
     itemLink = data.hyperlink
     quantity = data.quantity
+    source = 'Profession'
 
     if data.quantity == 1 then
         loottype = "## self (single) ##"
@@ -129,7 +129,7 @@ function Events.OnChatMsgAddon(event, prefix, msg, type, sender)
     local v = {}
     for i = 1, #tokens do tinsert(v, LibParse:JSONDecode(tokens[i])) end
 
-    local success, itemLink, itemID, quantity, senderUnitGUID = true, unpack(v)
+    local _, itemLink, itemID, quantity, senderUnitGUID = true, unpack(v)
 
     LA.Debug.Log("senderGUID vs. playerGUID: %s vs. %s", senderUnitGUID,
                  UnitGUID("player"))

@@ -67,6 +67,138 @@ LibToast:Register("LootAppraiserReloaded",
     if iconTexture then toast:SetIconTexture(iconTexture) end
 end)
 
+--[[------------------------------------------------------------------------
+    Toast positioning: install a _G.Toaster shim so LibToast reads our saved
+    anchor position.  Only runs if the real "Toaster" addon is not loaded.
+--------------------------------------------------------------------------]]
+function UI.SetupToastPositioning()
+    if _G.Toaster then return end  -- real Toaster addon takes priority
+
+    _G.Toaster = {
+        SpawnPoint = function()
+            return LA.db.profile.notification.toastAnchor.point or "BOTTOMRIGHT"
+        end,
+        SpawnOffsetX = function()
+            return LA.db.profile.notification.toastAnchor.x or -20
+        end,
+        SpawnOffsetY = function()
+            return LA.db.profile.notification.toastAnchor.y or 30
+        end,
+        -- Replicate LibToast built-in defaults for the remaining hooks
+        TitleColors      = function() return 0.510, 0.773, 1 end,
+        TextColors       = function() return 0.486, 0.518, 0.541 end,
+        BackgroundColors = function() return 0, 0, 0 end,
+        Duration         = function() return 5 end,
+        Opacity          = function() return 0.75 end,
+        FloatingIcon     = function() return false end,
+        HideToasts           = function() return false end,
+        HideToastsFromSource = function() return false end,
+        MuteToasts           = function() return false end,
+        MuteToastsFromSource = function() return false end,
+        IconSize         = function() return 30 end,
+    }
+end
+
+--[[------------------------------------------------------------------------
+    Toggle a draggable 250×50 anchor frame that previews where toasts appear.
+    Drag it to reposition; right-click to close.
+--------------------------------------------------------------------------]]
+function UI.ShowToastPositioner()
+    local anchor = LA.db.profile.notification.toastAnchor
+
+    if private.TOAST_POSITIONER then
+        -- Restore to current saved position each time it is shown
+        private.TOAST_POSITIONER:ClearAllPoints()
+        private.TOAST_POSITIONER:SetPoint(
+            anchor.point or "BOTTOMRIGHT", UIParent,
+            anchor.point or "BOTTOMRIGHT",
+            anchor.x or -20, anchor.y or 30)
+        if private.TOAST_POSITIONER:IsShown() then
+            private.TOAST_POSITIONER:Hide()
+        else
+            private.TOAST_POSITIONER:Show()
+        end
+        return
+    end
+
+    local f = CreateFrame("Frame", "LAToastPositioner", UIParent,
+                          BackdropTemplateMixin and "BackdropTemplate" or nil)
+    f:SetSize(250, 50)
+    f:SetFrameStrata("HIGH")
+    f:SetBackdrop({
+        bgFile   = [[Interface\FriendsFrame\UI-Toast-Background]],
+        edgeFile = [[Interface\FriendsFrame\UI-Toast-Border]],
+        tile = true, tileSize = 12, edgeSize = 12,
+        insets = {left = 5, right = 5, top = 5, bottom = 5}
+    })
+    f:SetBackdropColor(0.1, 0.3, 0.7, 0.9)
+    f:SetBackdropBorderColor(1, 1, 0, 1)
+    f:SetMovable(true)
+    f:EnableMouse(true)
+    f:RegisterForDrag("LeftButton")
+
+    f:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    f:SetScript("OnDragStop", function(self)
+        self:StopMovingOrSizing()
+
+        -- Determine the closest UIParent corner and compute offsets from it.
+        -- StartMoving() uses a TOPLEFT anchor internally, so we derive the
+        -- correct corner-based offset from the frame's center position.
+        local cx, cy = self:GetCenter()
+        local sw, sh = UIParent:GetWidth(), UIParent:GetHeight()
+        local bx, by = self:GetWidth() / 2, self:GetHeight() / 2
+
+        local point, x, y
+        if cx > sw / 2 then
+            if cy > sh / 2 then
+                point = "TOPRIGHT"
+                x = (cx + bx) - sw
+                y = (cy + by) - sh
+            else
+                point = "BOTTOMRIGHT"
+                x = (cx + bx) - sw
+                y = cy - by
+            end
+        else
+            if cy > sh / 2 then
+                point = "TOPLEFT"
+                x = cx - bx
+                y = (cy + by) - sh
+            else
+                point = "BOTTOMLEFT"
+                x = cx - bx
+                y = cy - by
+            end
+        end
+
+        LA.db.profile.notification.toastAnchor.point = point
+        LA.db.profile.notification.toastAnchor.x     = x
+        LA.db.profile.notification.toastAnchor.y     = y
+
+        -- Re-anchor cleanly so it sits exactly where the toast corner will be
+        self:ClearAllPoints()
+        self:SetPoint(point, UIParent, point, x, y)
+    end)
+
+    -- Right-click to dismiss
+    f:SetScript("OnMouseDown", function(self, btn)
+        if btn == "RightButton" then self:Hide() end
+    end)
+
+    local label = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    label:SetAllPoints(f)
+    label:SetJustifyH("CENTER")
+    label:SetJustifyV("MIDDLE")
+    label:SetText("|cFFFFFF00Toast Anchor|r\n|cFFFFFFFFDrag  •  Right-click to close|r")
+
+    f:SetPoint(anchor.point or "BOTTOMRIGHT", UIParent,
+               anchor.point or "BOTTOMRIGHT",
+               anchor.x or -20, anchor.y or 30)
+
+    private.TOAST_POSITIONER = f
+    f:Show()
+end
+
 -- the timer ui
 local timerUItotal = 0
 function UI.ShowTimerWindow()
@@ -203,15 +335,49 @@ function UI.ShowLiteWindow()
     private.LITE_UI:SetStatusTable(LA.db.profile.liteUI)
     private.LITE_UI:SetWidth(150)
     private.LITE_UI:SetHeight(30)
-    -- private.LITE_UI:EnableResize(false)
     local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
     private.LITE_UI:SetTitle("|cffffffff" ..
                                  LA.Util.MoneyToString(totalItemValue) .. "|r")
     private.LITE_UI:Show()
-    local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
 end
 
 function pickupDragMovement() LA.Debug.Log("dragging in progress") end
+
+-- returns the configured font size (default 10)
+function private.GetFontSize()
+    return LA.db.profile.display.fontSize or 10
+end
+
+-- Returns usable content width inside the main frame (subtracts AceGUI Frame border padding: 17px each side)
+function private.GetInnerWidth()
+    if private.MAIN_UI and private.MAIN_UI.frame:GetWidth() > 0 then
+        return private.MAIN_UI.frame:GetWidth() - 40
+    end
+    return 410 -- fallback: default 450 - 34
+end
+
+-- applies the current font size to all label and button widgets in the main UI
+function UI.ApplyFontSize()
+    if not private.MAIN_UI then return end
+
+    LA.UI.PrepareDataContainer()
+
+    -- Apply font to buttons (created once; not rebuilt by PrepareDataContainer)
+    local fontSize = private.GetFontSize()
+    local font, _, flags = GameFontHighlightSmall:GetFont()
+    local buttonKeys = {
+        "button_newSession", "button_stopSession",
+        "button_sellTrash", "button_destroyTrash", "button_resetInstance"
+    }
+    for _, key in pairs(buttonKeys) do
+        local btn = private.MAIN_UI:GetUserData(key)
+        if btn then
+            btn.text:SetFont(font, fontSize, flags)
+        end
+    end
+
+    private.MAIN_UI:DoLayout()
+end
 
 -- the main ui
 local additionalButtonHeight = 0
@@ -248,7 +414,7 @@ function UI.ShowMainWindow(showMainUI)
                                  ": Make Farming Sexy!")
     private.MAIN_UI:SetLayout("Flow")
     private.MAIN_UI:SetWidth(450) -- changed from 410 to support ElvUI.
-    private.MAIN_UI:EnableResize(false)
+    private.MAIN_UI:EnableResize(true)
     private.MAIN_UI.frame:SetClampedToScreen(true)
 
     if LA.Util.IsModern then
@@ -259,6 +425,8 @@ function UI.ShowMainWindow(showMainUI)
             LA.Debug.Log("WoWToken price loaded: " .. LA.UI.WOW_TOKEN)
         end)
     end
+
+    local lastFrameWidth = private.MAIN_UI.frame:GetWidth()
 
     private.MAIN_UI.frame:SetScript("OnUpdate", function(event, elapsed)
         mainUItotal = mainUItotal + elapsed
@@ -275,6 +443,13 @@ function UI.ShowMainWindow(showMainUI)
                 buttonresetInstance:SetText(
                     "Reset Instances (" ..
                         LA.Util.tablelength(private.resetInfo) .. "/9)")
+            end
+
+            -- re-layout data rows when the frame has been resized
+            local currentWidth = private.MAIN_UI.frame:GetWidth()
+            if currentWidth ~= lastFrameWidth then
+                lastFrameWidth = currentWidth
+                LA.UI.PrepareDataContainer()
             end
         end
 
@@ -357,37 +532,55 @@ function UI.ShowMainWindow(showMainUI)
     LA.UI.PrepareDataContainer(private.MAIN_UI)
     private.AddSpacer(private.MAIN_UI)
 
-    -- button sell trash --
+    -- Count visible buttons so each gets an equal relative width
     local showSellTrashBtn = LA.GetFromDb("display", "showSellTrashBtn")
+    local showDetroyTrashBtn = LA.GetFromDb("display", "showDetroyTrashBtn")
+    local showResetInstanceBtn = LA.GetFromDb("display", "showResetInstanceButton")
+    local buttonCount = 2 -- New Session + Stop always shown
+    if showSellTrashBtn ~= false then buttonCount = buttonCount + 1 end
+    if showDetroyTrashBtn ~= false then buttonCount = buttonCount + 1 end
+    if showResetInstanceBtn then buttonCount = buttonCount + 1 end
+    local btnRelWidth = 1 / buttonCount
+
+    -- Button bar: full-width container so buttons always fill the row and resize with the window
+    local buttonBar = AceGUI:Create("SimpleGroup")
+    buttonBar:SetLayout("flow")
+    buttonBar:SetFullWidth(true)
+    private.MAIN_UI:AddChild(buttonBar)
+    private.MAIN_UI:SetUserData("button_bar", buttonBar)
+
+    -- button sell trash --
     if showSellTrashBtn == false then
         LA.Debug.Log("Show Sell Trash Button = disabled")
     else
         local BUTTON_SELLTRASH = AceGUI:Create("Button")
-        BUTTON_SELLTRASH:SetAutoWidth(true)
+        BUTTON_SELLTRASH:SetRelativeWidth(btnRelWidth)
         BUTTON_SELLTRASH:SetText("Sell Trash")
         BUTTON_SELLTRASH:SetCallback("OnClick", function()
             private.OnBtnSellTrashClick()
         end)
 
-        private.MAIN_UI:AddChild(BUTTON_SELLTRASH)
+        buttonBar:AddChild(BUTTON_SELLTRASH)
+        private.MAIN_UI:SetUserData("button_sellTrash", BUTTON_SELLTRASH)
     end
+
     -- button trash grays --
-    local showDetroyTrashBtn = LA.GetFromDb("display", "showDetroyTrashBtn")
     if showDetroyTrashBtn == false then
         LA.Debug.Log("Show Delete Trash Button = disabled")
     else
         local BUTTON_DESTROYTRASH = AceGUI:Create("Button")
-        BUTTON_DESTROYTRASH:SetAutoWidth(true)
+        BUTTON_DESTROYTRASH:SetRelativeWidth(btnRelWidth)
         BUTTON_DESTROYTRASH:SetText("Destroy Trash")
         BUTTON_DESTROYTRASH:SetCallback("OnClick", function()
             private.OnBtnDestroyTrashClick()
         end)
-        private.MAIN_UI:AddChild(BUTTON_DESTROYTRASH)
+        buttonBar:AddChild(BUTTON_DESTROYTRASH)
+        private.MAIN_UI:SetUserData("button_destroyTrash", BUTTON_DESTROYTRASH)
     end
 
     -- button new session --
     local BUTTON_NEWSESSION = AceGUI:Create("Button")
-    BUTTON_NEWSESSION:SetAutoWidth(true)
+    BUTTON_NEWSESSION:SetRelativeWidth(btnRelWidth)
     BUTTON_NEWSESSION:SetText("New Session")
     BUTTON_NEWSESSION:SetCallback("OnClick", function()
         if IsShiftKeyDown() then
@@ -397,69 +590,59 @@ function UI.ShowMainWindow(showMainUI)
         end
     end)
     BUTTON_NEWSESSION:SetCallback("OnEnter", function()
-        -- prepare tooltip
         GameTooltip:ClearLines()
-        GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR") -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
+        GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")
         GameTooltip:AddLine("New Session")
         GameTooltip:AddLine("|cffffffffHold 'shift' and click the|r")
         GameTooltip:AddLine("|cffffffffbutton to start a new session|r")
         GameTooltip:Show()
     end)
     BUTTON_NEWSESSION:SetCallback("OnLeave", function() GameTooltip:Hide() end)
-    private.MAIN_UI:AddChild(BUTTON_NEWSESSION)
+    buttonBar:AddChild(BUTTON_NEWSESSION)
+    private.MAIN_UI:SetUserData("button_newSession", BUTTON_NEWSESSION)
 
     -- button stop session --
     local buttonStopSession = AceGUI:Create("Button")
-    buttonStopSession:SetAutoWidth(true)
+    buttonStopSession:SetRelativeWidth(btnRelWidth)
     if LA.Session.IsRunning() then
         buttonStopSession:SetText("Stop")
         buttonStopSession:SetCallback("OnClick", function()
-            -- private.OnBtnStopSessionClick()
             LA.Session.Pause()
         end)
     else
         buttonStopSession:SetText("Restart")
         buttonStopSession:SetCallback("OnClick", function()
-            --            private.OnBtnStartSessionClick()
             LA.Session.Restart()
         end)
     end
-    private.MAIN_UI:AddChild(buttonStopSession)
-
+    buttonBar:AddChild(buttonStopSession)
     private.MAIN_UI:SetUserData("button_stopSession", buttonStopSession)
 
     -- button reset instances --
-    if LA.GetFromDb("display", "showResetInstanceButton") then
+    if showResetInstanceBtn then
         private.resetInfo = private.resetInfo or {}
 
         local buttonResetInstance = AceGUI:Create("Button")
-        buttonResetInstance:SetAutoWidth(true)
+        buttonResetInstance:SetRelativeWidth(btnRelWidth)
         buttonResetInstance:SetText("Reset Instances (" ..
                                         LA.Util.tablelength(private.resetInfo) ..
-                                        "/9)") -- add lockouts
+                                        "/9)")
         buttonResetInstance:SetCallback("OnClick", function()
             private.OnBtnResetInstancesClick()
         end)
         buttonResetInstance:SetCallback("OnEnter", function()
-            -- remove old entries
             local copy = {}
             for k, data in pairs(private.resetInfo) do
                 if data.endTime >= time() then copy[k] = data end
             end
-
             private.resetInfo = copy
-
-            -- sort list
             sort(private.resetInfo, function(a, b)
                 LA.Debug.Log("ResetInstance a: " .. tostring(a))
                 LA.Debug.Log("ResetInstance b: " .. tostring(b))
                 return a.endTime < b.endTime
             end)
-
-            -- prepare tooltip
             GameTooltip:ClearLines()
-            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR") -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
-
+            GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")
             GameTooltip:AddLine("Instance lockouts")
             if LA.Util.tablelength(private.resetInfo) > 0 then
                 for _, data in pairs(private.resetInfo) do
@@ -471,24 +654,21 @@ function UI.ShowMainWindow(showMainUI)
             else
                 GameTooltip:AddLine("|cffffffffNone|r")
             end
-
             GameTooltip:Show()
         end)
         buttonResetInstance:SetCallback("OnLeave",
                                         function() GameTooltip:Hide() end)
-        private.MAIN_UI:AddChild(buttonResetInstance)
-
+        buttonBar:AddChild(buttonResetInstance)
         private.MAIN_UI:SetUserData("button_resetInstance", buttonResetInstance)
 
         additionalButtonHeight = 25
-
     end
 
     -- adjust height
     local baseHeight = 112
 
     local rowCount = LA.db.profile.display.lootedItemListRowCount or 5
-    local listHeight = rowCount * 15
+    local listHeight = rowCount * (private.GetFontSize() + 5)
 
     local dataContainerHeight = dataContainer.frame:GetHeight()
 
@@ -529,14 +709,18 @@ function UI.PrepareDataContainer(parent)
                                          "data_lootCollectedContainer")
     if lootCollectedContainerUI then
         local rowCount = LA.db.profile.display.lootedItemListRowCount or 5
-        lootCollectedContainerUI:SetHeight(rowCount * 15)
+        local rowHeight = private.GetFontSize() + 5
+        lootCollectedContainerUI:SetHeight(rowCount * rowHeight)
     end
 
     -- prepare data container with current rows
+    local fontSize = private.GetFontSize()
+    local font, _, flags = GameFontHighlightSmall:GetFont()
 
     -- zone and session duration
-    local labelWidth = 209
-    local valueWidth = 166
+    local innerWidth = private.GetInnerWidth()
+    local labelWidth = math.floor(innerWidth * 0.60) -- ~56% for zone label
+    local valueWidth = innerWidth - labelWidth
 
     local grp = AceGUI:Create("SimpleGroup")
     grp:SetLayout("flow")
@@ -550,16 +734,18 @@ function UI.PrepareDataContainer(parent)
 
     local valueZone = AceGUI:Create("LALabel")
     valueZone:SetWordWrap(false)
+    valueZone:SetFont(font, fontSize, flags)
     valueZone:SetText(zoneInfo)
-    valueZone:SetWidth(labelWidth) -- TODO
+    valueZone:SetWidth(labelWidth)
     valueZone:SetJustifyH("LEFT")
     grp:AddChild(valueZone)
     parent:SetUserData("data_zone", valueZone)
 
     -- ...and session duration
     local sessionDuration = AceGUI:Create("LALabel")
+    sessionDuration:SetFont(font, fontSize, flags)
     sessionDuration:SetText("not running")
-    sessionDuration:SetWidth(valueWidth) -- TODO
+    sessionDuration:SetWidth(valueWidth)
     sessionDuration:SetJustifyH("RIGHT")
     grp:AddChild(sessionDuration)
     parent:SetUserData("data_sessionDuration", sessionDuration)
@@ -574,10 +760,10 @@ function UI.PrepareDataContainer(parent)
     local lootedItemValue = private.DefineRowForFrame(dataContainer,
                                                       "showLootedItemValue",
                                                       "Looted Item Value:",
-                                                      livValue)
+                                                      livValue, innerWidth)
     parent:SetUserData("data_lootedItemValue", lootedItemValue)
 
-    ---------------------------------------------------------------------	
+    ---------------------------------------------------------------------
     -- Added vendor sales from gray items
     ---------------------------------------------------------------------
     -- ...vendor sales value
@@ -587,11 +773,12 @@ function UI.PrepareDataContainer(parent)
     local lootedVendorUI = private.DefineRowForFrame(dataContainer,
                                                      "showValueSoldToVendor",
                                                      "Gray Vendor Sales: ",
-                                                     formattedTotalLootedCurrency2)
+                                                     formattedTotalLootedCurrency2,
+                                                     innerWidth)
     parent:SetUserData("data_vendorSoldCurrency", lootedVendorUI)
 
     ---------------------------------------------------------------------
-    ---------------------------------------------------------------------	
+    ---------------------------------------------------------------------
 
     -- ...looted currency
     local formattedTotalLootedCurrency =
@@ -600,7 +787,8 @@ function UI.PrepareDataContainer(parent)
     local lootedCurrencyUI = private.DefineRowForFrame(dataContainer,
                                                        "showCurrencyLooted",
                                                        "Currency Looted:",
-                                                       formattedTotalLootedCurrency)
+                                                       formattedTotalLootedCurrency,
+                                                       innerWidth)
     parent:SetUserData("data_lootedCurrency", lootedCurrencyUI)
 
     -- ...looted item counter
@@ -610,7 +798,8 @@ function UI.PrepareDataContainer(parent)
                                                           LA.Session
                                                               .GetCurrentSession(
                                                               "lootedItemCounter") or
-                                                              0)
+                                                              0,
+                                                          innerWidth)
     parent:SetUserData("data_lootedItemCounter", lootedItemCounterUI)
 
     -- ...noteworthy item counter
@@ -620,7 +809,8 @@ function UI.PrepareDataContainer(parent)
                                                               LA.Session
                                                                   .GetCurrentSession(
                                                                   "noteworthyItemCounter") or
-                                                                  0)
+                                                                  0,
+                                                              innerWidth)
     parent:SetUserData("data_noteworthyItemCounter", noteworthyItemCounterUI)
 
     if LA.Util.IsModern then
@@ -631,7 +821,8 @@ function UI.PrepareDataContainer(parent)
                                                                LA.Session
                                                                    .GetCurrentSession(
                                                                    "wowTokenPercentage") or
-                                                                   0)
+                                                                   0,
+                                                               innerWidth)
         parent:SetUserData("data_wowTokenPercentage", wowTokenPercentageUI)
     end
     -- group loot
@@ -646,7 +837,8 @@ function UI.PrepareDataContainer(parent)
     local lootedItemValueGroupUI = private.DefineRowForFrame(dataContainer,
                                                              "showLootedItemValueGroup",
                                                              "|cFF2DA6EDGroup:|r Looted Item Value:",
-                                                             livValueGroup)
+                                                             livValueGroup,
+                                                             innerWidth)
     parent:SetUserData("data_lootedItemValueGroup", lootedItemValueGroupUI)
 
     -- and re-layout
@@ -656,7 +848,7 @@ function UI.PrepareDataContainer(parent)
     local baseHeight = 112
 
     local rowCount = LA.db.profile.display.lootedItemListRowCount or 5
-    local listHeight = rowCount * 15
+    local listHeight = rowCount * (private.GetFontSize() + 5)
 
     local dataContainerHeight = dataContainer.frame:GetHeight()
 
@@ -939,7 +1131,6 @@ end
 function UI.UpdateLiteWindowUI()
     if private.LITE_UI then
         local totalItemValue = LA.Session.GetCurrentSession("liv") or 0
-        -- LA.Debug.Log("LIV: " .. tostring(totalItemValue))
         private.LITE_UI:SetTitle("|cffffffff" ..
                                      LA.Util.MoneyToString(totalItemValue) ..
                                      "|r")
@@ -980,9 +1171,11 @@ function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue,
     -- item / link
     local LABEL = AceGUI:Create("InteractiveLabel")
     LABEL.frame:Hide()
+    local _lFont, _, _lFlags = GameFontHighlightSmall:GetFont()
+    LABEL:SetFont(_lFont, private.GetFontSize(), _lFlags) -- before SetText so UpdateImageAnchor uses correct height
     LABEL:SetText(preparedText)
     LABEL.label:SetJustifyH("LEFT")
-    LABEL:SetWidth(350)
+    LABEL:SetWidth(private.GetInnerWidth())
     LABEL:SetCallback("OnEnter", function()
         GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR") -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
         GameTooltip:SetHyperlink(link)
@@ -1276,7 +1469,7 @@ function private.OnBtnDestroyTrashClick()
 end
 
 -- add a row with label and value to the frame
-function private.DefineRowForFrame(frame, id, name, value)
+function private.DefineRowForFrame(frame, id, name, value, availableWidth)
     LA.Debug.Log("  defineRowForFrame: id=%s, name=%s, value=%s", id, name,
                  value)
 
@@ -1285,25 +1478,31 @@ function private.DefineRowForFrame(frame, id, name, value)
         return
     end
 
-    local labelWidth = 150 -- 150
-    local valueWidth = 225 -- 225
+    local totalWidth = availableWidth or private.GetInnerWidth()
+    local labelWidth = math.floor(totalWidth * 0.40)
+    local valueWidth = totalWidth - labelWidth
 
     local grp = AceGUI:Create("SimpleGroup")
     grp:SetLayout("flow")
     grp:SetFullWidth(true)
     frame:AddChild(grp)
 
+    local fontSize = private.GetFontSize()
+    local font, _, flags = GameFontHighlightSmall:GetFont()
+
     -- add label...
     local label = AceGUI:Create("LALabel")
+    label:SetFont(font, fontSize, flags) -- must be before SetText so UpdateImageAnchor uses correct height
     label:SetText(name)
-    label:SetWidth(labelWidth) -- TODO
+    label:SetWidth(labelWidth)
     label:SetJustifyH("LEFT")
     grp:AddChild(label)
 
     -- ...and value
     local VALUE = AceGUI:Create("LALabel")
+    VALUE:SetFont(font, fontSize, flags)
     VALUE:SetText(value)
-    VALUE:SetWidth(valueWidth) -- TODO
+    VALUE:SetWidth(valueWidth)
     VALUE:SetJustifyH("RIGHT")
     grp:AddChild(VALUE)
 
@@ -1315,7 +1514,7 @@ function private.AddSpacer(frame)
     local SPACER = AceGUI:Create("LALabel")
     SPACER:SetJustifyH("LEFT")
     SPACER:SetText("   ")
-    SPACER:SetWidth(350)
+    SPACER:SetWidth(private.GetInnerWidth())
     frame:AddChild(SPACER)
 end
 

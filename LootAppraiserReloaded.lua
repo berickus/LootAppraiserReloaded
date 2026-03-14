@@ -29,6 +29,7 @@ end
     AceAddon-3.0: OnEnable
 --------------------------------------------------------------------------]]
 function LA:OnEnable()
+    LA.UI.SetupToastPositioning()
     LA.PriceSources.Prepare()
 
     -- Register chat commands

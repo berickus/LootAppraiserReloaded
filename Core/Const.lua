@@ -101,6 +101,11 @@ CONST.DB_DEFAULTS = {
                 ["sink20OutputSink"] = "RaidWarning"
             },
             ["enableToasts"] = false,
+            ["toastAnchor"] = {
+                ["point"] = "BOTTOMRIGHT",
+                ["x"] = -20,
+                ["y"] = 30
+            },
             ["trackCrafts"] = false,
             ["qualityFilter"] = "1",
             ["goldAlertThresholdA"] = "100",
@@ -123,6 +128,7 @@ CONST.DB_DEFAULTS = {
         },
         display = {
             lootedItemListRowCount = 5,
+            fontSize = 10,
             showZoneInfo = true,
             showSessionDuration = true,
             showLootedItemValue = true,

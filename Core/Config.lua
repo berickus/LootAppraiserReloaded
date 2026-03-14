@@ -515,6 +515,17 @@ local options = {
                                 LA.db.profile.notification[info[#info]] = value;
                             end
                         },
+                        positionToasts = {
+                            type = "execute",
+                            order = 310,
+                            name = "Position Toasts",
+                            desc = "Show a draggable anchor to set where toasts appear on screen. Drag it to the desired position, then right-click to close it.",
+                            width = "double",
+                            disabled = function()
+                                return not LA.db.profile.notification.enableToasts
+                            end,
+                            func = function() LA.UI.ShowToastPositioner() end
+                        },
 
                         trackCrafts = {
                             type = "toggle",
@@ -867,6 +878,26 @@ local options = {
                             hidden = false,
                             inline = true,
                             args = {
+                                accessibilityHeader = {
+                                    order = 1,
+                                    type = "header",
+                                    name = "Accessibility"
+                                },
+                                fontSize = {
+                                    type = "range",
+                                    order = 2,
+                                    name = "Font Size",
+                                    desc = "Adjust the font size for improved readability (default: 10). Changes apply immediately.",
+                                    min = 8,
+                                    max = 20,
+                                    step = 1,
+                                    width = "double",
+                                    get = function(_) return LA.db.profile.display.fontSize or 10 end,
+                                    set = function(_, value)
+                                        LA.db.profile.display.fontSize = value
+                                        LA.UI.ApplyFontSize()
+                                    end
+                                },
                                 lootedItemListRowCount = {
                                     type = "range",
                                     order = 5,

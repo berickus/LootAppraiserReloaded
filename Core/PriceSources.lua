@@ -107,35 +107,22 @@ end
     Get item value based on the selected/requested price source
 --------------------------------------------------------------------------]]
 function PriceSources.GetItemValue(itemID, priceSource)
-    local currentSource = LA.CONST.PRICE_SOURCE[LA.GetFromDb("pricesource",
-                                                             "source")] or ""
+    if priceSource == "VendorValue" then
+        -- "VendorValue" is the native Blizzard-only source ("BLIZ: Vendor price")
+        return select(11, GetItemInfo(itemID)) or 0
 
-    if LA.Util.startsWith(currentSource, "OE:") or
-        LA.Util.startsWith(currentSource, "AN:") or
-        LA.Util.startsWith(currentSource, "BLIZ:") then
+    elseif priceSource == "region" then
+        local priceInfo = {}
+        OEMarketInfo(itemID, priceInfo)
+        return priceInfo[priceSource]
 
-        if priceSource == "VendorSell" then
-            return select(11, GetItemInfo(itemID)) or 0
+    elseif priceSource == "Auctionator" then
+        return Auctionator.API.v1.GetAuctionPriceByItemID(
+                   "LootAppraiserReloaded", itemID)
 
-        elseif priceSource == "VendorValue" then
-            return select(11, GetItemInfo(itemID)) or 0
-
-        elseif priceSource == "region" then
-            local priceInfo = {}
-            OEMarketInfo(itemID, priceInfo)
-            return priceInfo[priceSource]
-
-        elseif priceSource == "Auctionator" then
-            return Auctionator.API.v1.GetAuctionPriceByItemID(
-                       "LootAppraiserReloaded", itemID)
-
-        else
-            -- Battle pet handling
-            local priceInfo = {}
-            return priceInfo[priceSource]
-        end
     else
-        -- TSM price source
+        -- All TSM price source keys go through TSM, including "VendorSell"
+        -- ("VendorSell" = "TSM: VendorSell", NOT the Blizzard vendor API)
         return LA.TSM.GetItemValue(itemID, priceSource)
     end
 end

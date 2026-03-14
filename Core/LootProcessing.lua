@@ -180,7 +180,7 @@ end
 --------------------------------------------------------------------------]]
 function private.ProcessGoldAlerts(itemID, itemLink, singleItemValue, quantity,
                                    quality, source, showGroupLoot)
-    local goldValue = floor(singleItemValue / 10000)
+    local goldValue = floor((singleItemValue * quantity) / 10000)
     local gatA = tonumber(LA.GetFromDb("notification", "goldAlertThresholdA"))
     local gatB =
         tonumber(LA.GetFromDb("notification", "goldAlertThresholdB")) or 0

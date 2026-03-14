@@ -39,7 +39,6 @@ function Events.OnChatMsgLoot(event, msg)
         end
 
         local loottype, itemLink, quantity, source
-        source = 'Loot'
 
         if msg:match(PATTERN_LOOT_ITEM_SELF_MULTIPLE) then
             loottype = "## self (multi) ##"

@@ -74,7 +74,7 @@ function private.GetModuleCallback(button, modifier)
     local modules = LA.GetModules()
     if not modules then return end
 
-    for name, module in pairs(modules) do
+    for _, module in pairs(modules) do
         if module.icon and module.icon.action then
             for _, action in pairs(module.icon.action) do
                 if action.button == button and action.modifier == modifier then
@@ -96,7 +96,7 @@ function MinimapIcon.SetupDataBroker()
         text = "0g",
         label = "Looted Item Value",
 
-        OnClick = function(self, button, down)
+        OnClick = function(self, button, _down)
             private.HandleClick(button)
         end
     })
@@ -135,7 +135,7 @@ function MinimapIcon.SetupMinimapIcon()
         text = LA.CONST.METADATA.NAME,
         icon = "Interface\\AddOns\\LootAppraiserReloaded\\Media\\icon.blp",
 
-        OnClick = function(self, button, down)
+        OnClick = function(self, button, _down)
             private.HandleClick(button)
         end,
 
@@ -170,7 +170,7 @@ function MinimapIcon.SetupMinimapIcon()
             -- Module tooltip lines
             local modules = LA.GetModules()
             if modules then
-                for name, module in pairs(modules) do
+                for _, module in pairs(modules) do
                     if module.icon and module.icon.tooltip then
                         tooltip:AddLine(" ")
                         for _, line in pairs(module.icon.tooltip) do
@@ -203,7 +203,7 @@ function MinimapIcon.SetupAddonCompartment()
         icon = "Interface\\Icons\\inv_scroll_11",
         registerForAnyClick = true,
         notCheckable = true,
-        func = function(button, menuInputData, menu)
+        func = function(_button, menuInputData, _menu)
             private.HandleClick(menuInputData.buttonName)
         end,
         funcOnEnter = function(button)

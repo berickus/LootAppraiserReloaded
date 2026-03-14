@@ -9,13 +9,11 @@ local LibStub = LibStub
 local AceGUI = LibStub("AceGUI-3.0")
 
 -- Lua APIs
-local pairs, ipairs, tostring, date, floor, table, sort = pairs, ipairs,
-                                                          tostring, date, floor,
-                                                          table, sort
+local pairs, ipairs, date, table, sort = pairs, ipairs, date, table, sort
 
 -- WoW APIs
-local GameTooltip, StaticPopupDialogs, StaticPopup_Show, PlaySound =
-    GameTooltip, StaticPopupDialogs, StaticPopup_Show, PlaySound
+local GameTooltip, StaticPopupDialogs, StaticPopup_Show =
+    GameTooltip, StaticPopupDialogs, StaticPopup_Show
 
 --[[
     Show the Session History window
@@ -65,7 +63,7 @@ function private.CreateUI()
     private.HISTORY_UI:EnableResize(true)
     private.HISTORY_UI.frame:SetClampedToScreen(true)
 
-    private.HISTORY_UI:SetCallback("OnClose", function(widget)
+    private.HISTORY_UI:SetCallback("OnClose", function(_widget)
         -- Don't release, just hide
         private.HISTORY_UI:Hide()
     end)
@@ -176,7 +174,7 @@ function private.RefreshSessionList()
 
     -- Sort by start time, newest first
     local sortedSessions = {}
-    for i, session in ipairs(sessions) do
+    for _, session in ipairs(sessions) do
         table.insert(sortedSessions, session)
     end
     sort(sortedSessions,
@@ -206,7 +204,7 @@ end
 --[[
     Create a row for a session
 ]]
-function private.CreateSessionRow(parent, session, index)
+function private.CreateSessionRow(parent, session, _index)
     -- Session row container
     local rowGroup = AceGUI:Create("SimpleGroup")
     rowGroup:SetFullWidth(true)
@@ -214,16 +212,13 @@ function private.CreateSessionRow(parent, session, index)
     rowGroup:SetHeight(50)
     parent:AddChild(rowGroup)
 
-    -- Alternate row colors
-    local bgAlpha = (index % 2 == 0) and 0.1 or 0.05
-
     -- Session name/date
     local displayName = LA.SessionHistory.GetSessionDisplayName(session)
 
     local nameLabel = AceGUI:Create("InteractiveLabel")
     nameLabel:SetText("|cffffd100" .. displayName .. "|r")
     nameLabel:SetWidth(250)
-    nameLabel:SetCallback("OnClick", function(widget, event, button)
+    nameLabel:SetCallback("OnClick", function(_widget, event, button)
         if button == "LeftButton" then
             private.ShowRenameDialog(session)
         elseif button == "RightButton" then
@@ -330,7 +325,7 @@ function private.ShowSessionTooltip(widget, session)
         local kills = session.kills
         if kills and next(kills) then
             local sorted = {}
-            for npcID, data in pairs(kills) do
+            for _, data in pairs(kills) do
                 sorted[#sorted + 1] = {name = data.name, count = data.count}
             end
             table.sort(sorted, function(a, b)
@@ -393,7 +388,7 @@ function private.ShowRenameDialog(session)
     local editBox = AceGUI:Create("EditBox")
     editBox:SetText(currentName)
     editBox:SetFullWidth(true)
-    editBox:SetCallback("OnEnterPressed", function(widget, event, text)
+    editBox:SetCallback("OnEnterPressed", function(_widget, event, text)
         if text and text ~= "" then
             LA.SessionHistory.RenameSession(session.id, text)
             LA:Print("Session renamed to: " .. text)

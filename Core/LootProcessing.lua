@@ -11,17 +11,16 @@ local LSM = LibStub:GetLibrary("LibSharedMedia-3.0")
 local LibParse = LibStub:GetLibrary("LibParse")
 
 -- Wow APIs
-local GetItemInfo, IsInGroup, UnitGUID, GetUnitName, GetBestMapForUnit,
-      PlaySoundFile, SendAddonMessage, IsShiftKeyDown = GetItemInfo, IsInGroup,
-                                                        UnitGUID, GetUnitName,
-                                                        C_Map.GetBestMapForUnit,
-                                                        PlaySoundFile,
-                                                        C_ChatInfo.SendAddonMessage,
-                                                        IsShiftKeyDown
+local GetItemInfo, IsInGroup, UnitGUID, GetBestMapForUnit,
+      PlaySoundFile, SendAddonMessage = GetItemInfo, IsInGroup,
+                                        UnitGUID,
+                                        C_Map.GetBestMapForUnit,
+                                        PlaySoundFile,
+                                        C_ChatInfo.SendAddonMessage
 
 -- Lua APIs
-local tonumber, tostring, floor, pairs, gsub, time = tonumber, tostring, floor,
-                                                     pairs, gsub, time
+local tonumber, tostring, floor, pairs, gsub = tonumber, tostring, floor,
+                                               pairs, gsub
 
 local LootAppraiserReloaded_GroupLoot = LootAppraiserReloaded_GroupLoot
 
@@ -159,7 +158,7 @@ function LootProcessing.HandleItemLooted(itemLink, itemID, quantity, source)
     if not source then
         local modules = LA.GetModules()
         if modules then
-            for name, data in pairs(modules) do
+            for _, data in pairs(modules) do
                 if data and data.callback and data.callback.itemDrop then
                     data.callback.itemDrop(itemID, singleItemValue)
                 end

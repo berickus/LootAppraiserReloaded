@@ -18,6 +18,7 @@ ignore = {
 
 exclude_files = {
 	'Libs/*',
+	'Core/UI/widget/LootAppraiserReloadedGUIContainer-LiteWindow.lua',
 }
 
 globals = {
@@ -42,6 +43,10 @@ globals = {
 	'NoteworthyUI',
 	'LALoot',
 	'LootAppraiser_GroupLoot',
+	'LootAppraiserReloaded_GroupLoot',
+	'LogLoot',
+	'btnNWIClose_OnClick',
+	'NoteworthyUI_OnLoad',
 }
 
 read_globals = {

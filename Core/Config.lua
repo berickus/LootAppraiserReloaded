@@ -58,8 +58,8 @@ local generalOptionsGroup = {
             name = "Suppress 'Start Session' dialogue during first loot.",
             desc = "Attention! If the dialog is suppressed, the session must be started by hand (left-click on the minimap icon)",
             width = "double",
-            set = function(info, value)
-                -- local oldValue = LA.db.profile.general[info[#info]]			    
+            set = function(_info, value)
+                -- local oldValue = LA.db.profile.general[_info[#_info]]
                 local oldValue = LA.GetFromDb("general",
                                               "surpressSessionStartDialog")
                 local surpressSessionStartDialogStatus = oldValue
@@ -200,7 +200,7 @@ local generalOptionsGroup = {
             desc = "TSM Custom Price Source. See TSM documentation for detailed description.",
             width = "full",
             disabled = function()
-                return not (LA.db.profile.pricesource.source == "Custom")
+                return LA.db.profile.pricesource.source ~= "Custom"
             end,
             get = function(info)
                 return LA.db.profile.pricesource[info[#info]]
@@ -209,7 +209,7 @@ local generalOptionsGroup = {
                 LA:Print("Custom price source changed to: " .. value)
                 LA.db.profile.pricesource[info[#info]] = value;
             end,
-            validate = function(info, value)
+            validate = function(_info, value)
                 local isValidPriceSource = LA.TSM.ParseCustomPrice(value)
                 if not isValidPriceSource then
                     -- error message
@@ -326,8 +326,7 @@ local tsmGroupsGroup = {
                     desc = "The TSM Group with all the none gray items to sell at the vendor.\n\nYou can also drop an item into the input field to select the items TSM group as 'Sell Trash'-group.",
                     width = "full",
                     disabled = function()
-                        return not (LA.db.profile.sellTrash.tsmGroupEnabled ==
-                                   true)
+                        return LA.db.profile.sellTrash.tsmGroupEnabled ~= true
                     end,
                     set = function(info, value)
                         local itemString = LA.TSM.ToItemString(value)
@@ -426,8 +425,7 @@ local tsmGroupsGroup = {
                     desc = "The TSM Group with all the blacklisted items.\n\nYou can also drop an item into the input field to select the items TSM group as 'Blacklist'-group.",
                     width = "full",
                     disabled = function()
-                        return not (LA.db.profile.blacklist.tsmGroupEnabled ==
-                                   true)
+                        return LA.db.profile.blacklist.tsmGroupEnabled ~= true
                     end,
                     set = function(info, value)
                         local itemString = LA.TSM.ToItemString(value)
@@ -1110,11 +1108,11 @@ local options = {
                                     order = 20,
                                     name = "Show minimap icon",
                                     width = "full",
-                                    get = function(info)
+                                    get = function(_info)
                                         return
                                             not LA.db.profile.minimapIcon.hide
                                     end,
-                                    set = function(info, value)
+                                    set = function(_info, value)
                                         LA.db.profile.minimapIcon.hide =
                                             not value
                                         if LA.db.profile.minimapIcon.hide ==
@@ -1474,7 +1472,7 @@ function Config.SettingsChangeAllowed(setting)
     LA.Debug.Log("SettingsChangeAllowed: name=" .. tostring(setting))
     local modules = LA.GetModules()
     if modules then
-        for name, data in pairs(modules) do
+        for _, data in pairs(modules) do
             if data and data.callback and data.callback.settingsChangeAllowed then
                 local callback = data.callback.settingsChangeAllowed
 

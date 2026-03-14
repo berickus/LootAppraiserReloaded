@@ -25,8 +25,6 @@ local AceGUI = LibStub("AceGUI-3.0")
 local GetItemQualityColor, CreateFrame, UIFrameFadeOut, UIFrameFadeIn,
       IsShiftKeyDown, PlaySound, GameTooltip, GetBestMapForUnit, GetMapInfo,
       ResetInstances, IsInGroup, SendChatMessage, GetMerchantNumItems,
-      GetMerchantItemInfo, GetContainerNumSlots, GetContainerItemLink,
-      UseContainerItem, GetContainerItemID, PickupContainerItem,
       DeleteCursorItem, SecondsToTime = GetItemQualityColor, CreateFrame,
                                         UIFrameFadeOut, UIFrameFadeIn,
                                         IsShiftKeyDown, PlaySound, GameTooltip,
@@ -34,17 +32,12 @@ local GetItemQualityColor, CreateFrame, UIFrameFadeOut, UIFrameFadeIn,
                                         C_Map.GetMapInfo, ResetInstances,
                                         IsInGroup, SendChatMessage,
                                         GetMerchantNumItems,
-                                        GetMerchantItemInfo,
-                                        GetContainerNumSlots,
-                                        GetContainerItemLink, UseContainerItem,
-                                        GetContainerItemID, PickupContainerItem,
                                         DeleteCursorItem, SecondsToTime
 local _G = _G
 
 -- lua api
-local pairs, tostring, string, time, table, select, date, sort, floor, tinsert =
-    pairs, tostring, string, time, table, select, date, sort, floor,
-    table.insert
+local pairs, tostring, time, select, date, sort, tinsert =
+    pairs, tostring, time, select, date, sort, table.insert
 
 -- define toast template
 LibToast:Register("LootAppraiserReloaded",
@@ -340,8 +333,6 @@ function UI.ShowLiteWindow()
                                  LA.Util.MoneyToString(totalItemValue) .. "|r")
     private.LITE_UI:Show()
 end
-
-function pickupDragMovement() LA.Debug.Log("dragging in progress") end
 
 -- returns the configured font size (default 10)
 function private.GetFontSize()

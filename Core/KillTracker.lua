@@ -139,7 +139,7 @@ end
 function KillTracker.OnCombatLogEvent()
     if not LA.Session.IsRunning() then return end
 
-    local _, subEvent, _, sourceGUID, sourceName, sourceFlags, _, destGUID,
+    local _, subEvent, _, _, _, _, _, destGUID,
           destName, destFlags = CombatLogGetCurrentEventInfo()
 
     if subEvent ~= "PARTY_KILL" then return end

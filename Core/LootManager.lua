@@ -19,12 +19,11 @@ function LogLoot(itemID, itemLink, itemValue)
     LA.Debug.Log("LM itemID: " .. itemID)
     LA.Debug.Log("LM itemLink: " .. itemLink)
     LA.Debug.Log("LM itemValue: " .. itemValue)
-    local i = 0
     -- get count of index
     local indexCounter = table.getn(LOOTMANAGER)
     LA.Debug.Log("table rows: " .. indexCounter)
     -- add next looted item to next index number
-    i = indexCounter + 1
+    local i = indexCounter + 1
     table.insert(LOOTMANAGER, i, itemLink)
     -- table.foreach(LOOTMANAGER, print)
 

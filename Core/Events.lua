@@ -38,7 +38,7 @@ function Events.OnChatMsgLoot(event, msg)
             LA.KillTracker.TryTrackFromLoot()
         end
 
-        local loottype, itemLink, quantity, source
+        local loottype, itemLink, quantity
 
         if msg:match(PATTERN_LOOT_ITEM_SELF_MULTIPLE) then
             loottype = "## self (multi) ##"
@@ -52,20 +52,17 @@ function Events.OnChatMsgLoot(event, msg)
         if loottype then
             LA.Debug.Log("#### type=%s; itemLink=%s; quantity=%s", loottype,
                          tostring(itemLink), tostring(quantity))
-            LA.Debug.Log("----source: " .. tostring(source))
 
             if not itemLink or not quantity then
                 LA.Debug.Log("#### ignore event! msg: " .. msg .. ", type=" ..
                                  tostring(loottype))
                 LA.Debug.Log("   itemLink=" .. tostring(itemLink) ..
-                                 "; quantity=" .. tostring(quantity) ..
-                                 "; source=" .. tostring(source) .. ")")
+                                 "; quantity=" .. tostring(quantity))
                 return
             end
 
             local itemID = LA.Util.ToItemID(itemLink)
-            LA.LootProcessing.HandleItemLooted(itemLink, itemID, quantity,
-                                               source)
+            LA.LootProcessing.HandleItemLooted(itemLink, itemID, quantity)
         end
     end
 end

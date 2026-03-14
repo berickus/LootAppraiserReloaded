@@ -12,7 +12,7 @@ local GetItemInfo, GetItemCount, C_Container, GetCoinTextureString =
 --[[------------------------------------------------------------------------
     Event: Merchant window opened
 --------------------------------------------------------------------------]]
-function Merchant.OnShow(event, msg)
+function Merchant.OnShow(event)
     -- Auto sell gray items
     if LA.GetFromDb("general", "sellGrayItemsToVendor") == true then
         LA.Session.Start(true)
@@ -50,7 +50,7 @@ function private.SellGrayItems()
                     LA.Debug.Log("No itemID found for " .. itemLink ..
                                      " in bag slot " .. bag)
                 else
-                    local name, _, rarity = GetItemInfo(itemID)
+                    local _, _, rarity = GetItemInfo(itemID)
                     local itemInfo = GetItemInfo(itemID)
                     local currentItemValue =
                         LA.PriceSources.GetItemValue(itemID, "VendorSell") or 0

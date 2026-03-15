@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.3.1
+ - Handle secret value chat message better
+ - Add no sound option to threshold
+
 ## v3.3.0
  - Made UI resizeable
  - Added font size

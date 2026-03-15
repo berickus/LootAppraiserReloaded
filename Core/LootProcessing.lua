@@ -275,7 +275,9 @@ function private.PlayGATSound(gatTier, source)
     local soundKey = "soundName" .. gatTier
     local soundName = LA.db.profile.notification[soundKey] or "None"
     LA.Debug.Log("gatSound: " .. gatTier)
-    PlaySoundFile(LSM:Fetch("sound", soundName), "master")
+    if soundName ~= "-- No Sound" then
+        PlaySoundFile(LSM:Fetch("sound", soundName), "master")
+    end
 end
 
 --[[------------------------------------------------------------------------

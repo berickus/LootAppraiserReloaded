@@ -113,8 +113,8 @@ CONST.DB_DEFAULTS = {
             ["goldAlertThresholdC"] = "0",
             ["playSoundEnabled"] = true,
             ["soundNameA"] = "Auction Window Open",
-            ["soundNameB"] = "None",
-            ["soundNameC"] = "None"
+            ["soundNameB"] = "-- No Sound",
+            ["soundNameC"] = "-- No Sound"
         },
         itemclasses = {},
         sellTrash = {

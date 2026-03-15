@@ -1424,6 +1424,7 @@ function Config:OnEnable()
     LA.Debug.Log("Config - Init")
 
     -- register sounds
+    LSM:Register("sound", "-- No Sound", 0) -- no sound
     LSM:Register("sound", "Auction Window Open", 567482) -- AuctionWindowOpen
     LSM:Register("sound", "Auction Window Close", 567499) -- AuctionWindowClose
     LSM:Register("sound", "Auto Quest Complete", 567476) -- AutoQuestComplete

@@ -161,6 +161,7 @@ end
 --------------------------------------------------------------------------]]
 function Events.OnResetInfoEvent(event, msg)
     if event == "CHAT_MSG_SYSTEM" then
+        if type(msg) ~= "string" then return end
         if msg:match("^" .. resetmsg .. "$") then
             LA.Debug.Log("  match: " ..
                              tostring(msg:match("^" .. resetmsg .. "$")))

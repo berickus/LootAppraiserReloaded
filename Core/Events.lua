@@ -123,7 +123,7 @@ function Events.OnChatMsgAddon(event, prefix, msg, type, sender)
 
     local tokens = LA.Util.split(msg, "\001")
     local v = {}
-    for i = 1, #tokens do tinsert(v, LibParse:JSONDecode(tokens[i])) end
+    for i = 1, #tokens do tinsert(v, (LibParse:JSONDecode(tokens[i]))) end
 
     local _, itemLink, itemID, quantity, senderUnitGUID = true, unpack(v)
 

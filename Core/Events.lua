@@ -162,9 +162,9 @@ end
 function Events.OnResetInfoEvent(event, msg)
     if event == "CHAT_MSG_SYSTEM" then
         if type(msg) ~= "string" then return end
-        if msg:match("^" .. resetmsg .. "$") then
-            LA.Debug.Log("  match: " ..
-                             tostring(msg:match("^" .. resetmsg .. "$")))
+        local resetMatch = smatch(msg, "^" .. resetmsg .. "$")
+        if resetMatch then
+            LA.Debug.Log("  match: " .. tostring(resetMatch))
 
             local instanceName = smatch(msg, INSTANCE_RESET_SUCCESS:gsub("%%s",
                                                                          "(.+)"))

@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.3.2
+ - Fix group loot parsing
+ - Fixed instance reset parsing
+
 ## v3.3.1
  - Handle secret value chat message better
  - Add no sound option to threshold

@@ -53,7 +53,7 @@ function private.SellGrayItems()
                     local _, _, rarity = GetItemInfo(itemID)
                     local itemInfo = GetItemInfo(itemID)
                     local currentItemValue =
-                        LA.PriceSources.GetItemValue(itemID, "VendorSell") or 0
+                        LA.PriceSources.GetItemValue(itemID, "VendorValue") or 0
 
                     local iStackCount = GetItemCount(itemInfo)
                     if iStackCount > 1 then

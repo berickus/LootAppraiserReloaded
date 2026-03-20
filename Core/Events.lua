@@ -162,12 +162,13 @@ end
 function Events.OnResetInfoEvent(event, msg)
     if event == "CHAT_MSG_SYSTEM" then
         if type(msg) ~= "string" then return end
-        local resetMatch = smatch(msg, "^" .. resetmsg .. "$")
+        local ok, resetMatch = pcall(smatch, msg, "^" .. resetmsg .. "$")
+        if not ok then return end
         if resetMatch then
             LA.Debug.Log("  match: " .. tostring(resetMatch))
 
-            local instanceName = smatch(msg, INSTANCE_RESET_SUCCESS:gsub("%%s",
-                                                                         "(.+)"))
+            local _, instanceName = pcall(smatch, msg, INSTANCE_RESET_SUCCESS:gsub("%%s",
+                                                                                    "(.+)"))
 
             local data = {
                 ["endTime"] = time() + 60 * 60,

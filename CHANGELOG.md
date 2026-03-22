@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.3.3
+ - Sanitized remaining loot messages
+
 ## v3.3.2
  - Fix group loot parsing
  - Fixed instance reset parsing

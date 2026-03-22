@@ -38,15 +38,23 @@ function Events.OnChatMsgLoot(event, msg)
             LA.KillTracker.TryTrackFromLoot()
         end
 
+        if type(msg) ~= "string" then return end
+
         local loottype, itemLink, quantity
 
-        if msg:match(PATTERN_LOOT_ITEM_SELF_MULTIPLE) then
+        local ok, link, qty = pcall(smatch, msg, PATTERN_LOOT_ITEM_SELF_MULTIPLE)
+        if not ok then return end
+        if link then
             loottype = "## self (multi) ##"
-            itemLink, quantity = smatch(msg, PATTERN_LOOT_ITEM_SELF_MULTIPLE)
-        elseif msg:match(PATTERN_LOOT_ITEM_SELF) then
-            loottype = "## self (single) ##"
-            itemLink = smatch(msg, PATTERN_LOOT_ITEM_SELF)
-            quantity = 1
+            itemLink, quantity = link, qty
+        else
+            local ok2
+            ok2, itemLink = pcall(smatch, msg, PATTERN_LOOT_ITEM_SELF)
+            if not ok2 then return end
+            if itemLink then
+                loottype = "## self (single) ##"
+                quantity = 1
+            end
         end
 
         if loottype then
@@ -145,9 +153,12 @@ end
 function Events.OnChatMsgMoney(event, msg)
     if not LA.Session.IsRunning() then return end
 
+    if type(msg) ~= "string" then return end
+
     LA.Debug.Log("  OnChatMsgMoney: msg=%s", tostring(msg))
 
-    local lootedCopper = LA.Util.StringToMoney(msg)
+    local ok, lootedCopper = pcall(LA.Util.StringToMoney, msg)
+    if not ok then return end
     if msg == "Free Trial money cap reached." then
         LA.Debug.Log("Ignoring looted copper.")
     else

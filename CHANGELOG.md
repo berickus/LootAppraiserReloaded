@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.3.4
+ - Fix UI opening on vendor sell
+
 ## v3.3.3
  - Sanitized remaining loot messages
 

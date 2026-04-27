@@ -9,8 +9,10 @@ local private = {
     TIMER_UI = nil,
     TIMER_UI_TAB = nil,
     LAST_NOTEWOTHYITEM_UI = nil,
-    WOW_TOKEN = nil
+    WOW_TOKEN = nil,
     --        START_SESSION_PROMPT = nil
+    lootHistory = {}, -- array of every individual loot event this session
+    lootSummary = {}  -- [itemID] = { link, totalQuantity, totalValue }
 }
 UI.b1 = nil -- private
 
@@ -1129,7 +1131,69 @@ function UI.UpdateLiteWindowUI()
     end
 end
 
--- add a given item to the top of the loot colletced list
+-- create and prepend a single label into the loot collected scroll frame
+local function AddLootLabel(link, quantity, perItemValue, source, disenchanted)
+    local totalValue = perItemValue * tonumber(quantity)
+    local formattedValue = LA.Util.MoneyToString(totalValue) or 0
+    local preparedText = " " .. link .. " x" .. quantity .. ": " .. formattedValue
+
+    if disenchanted then preparedText = preparedText .. " (de)" end
+    if source then
+        preparedText = preparedText .. " (|cFF2DA6ED" .. source .. "|r)"
+    end
+
+    local LABEL = AceGUI:Create("InteractiveLabel")
+    LABEL.frame:Hide()
+    local _lFont, _, _lFlags = GameFontHighlightSmall:GetFont()
+    LABEL:SetFont(_lFont, private.GetFontSize(), _lFlags)
+    LABEL:SetText(preparedText)
+    LABEL.label:SetJustifyH("LEFT")
+    LABEL:SetWidth(private.GetInnerWidth())
+    LABEL:SetCallback("OnEnter", function()
+        GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR")
+        GameTooltip:SetHyperlink(link)
+        GameTooltip:Show()
+    end)
+    LABEL:SetCallback("OnLeave", function() GameTooltip:Hide() end)
+
+    local lootCollectedUI = private.MAIN_UI:GetUserData("data_lootCollected")
+    local lootCollectedLastEntryUI = private.MAIN_UI:GetUserData("data_lootCollected_lastEntry")
+    if lootCollectedLastEntryUI then
+        lootCollectedUI:AddChild(LABEL, lootCollectedLastEntryUI)
+    else
+        lootCollectedUI:AddChild(LABEL)
+    end
+    private.MAIN_UI:SetUserData("data_lootCollected_lastEntry", LABEL)
+end
+
+-- rebuild the loot list from tracked data; used when toggling summary mode mid-session
+function UI.RebuildLootList()
+    if not private.MAIN_UI then return end
+    local lootCollectedUI = private.MAIN_UI:GetUserData("data_lootCollected")
+    if not lootCollectedUI then return end
+    lootCollectedUI:ReleaseChildren()
+    private.MAIN_UI:SetUserData("data_lootCollected_lastEntry", nil)
+
+    if LA.GetFromDb("display", "summaryMode") then
+        -- build a sorted array of summary entries (ascending by totalValue so highest ends up on top)
+        local sorted = {}
+        for _, entry in pairs(private.lootSummary) do
+            sorted[#sorted + 1] = entry
+        end
+        table.sort(sorted, function(a, b) return a.totalValue < b.totalValue end)
+        for _, entry in ipairs(sorted) do
+            AddLootLabel(entry.link, entry.totalQuantity, entry.totalValue / entry.totalQuantity, nil, nil)
+        end
+    else
+        -- replay history oldest-first so newest ends up on top via the prepend mechanism
+        for i = 1, #private.lootHistory do
+            local e = private.lootHistory[i]
+            AddLootLabel(e.link, e.quantity, e.perItemValue, e.source, e.disenchanted)
+        end
+    end
+end
+
+-- add a given item to the top of the loot collected list
 function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue,
                                       source, disenchanted)
     -- LA.Debug.Log("addItem2LootCollectedList(itemID=" .. itemID .. ", link=" .. tostring(link) .. ", quantity=" .. quantity .. ")")
@@ -1138,62 +1202,37 @@ function UI.AddItem2LootCollectedList(itemID, link, quantity, marketValue,
         return
     end
 
-    -- prepare text
-    local formattedItemValue = LA.Util.MoneyToString(marketValue) or 0
-    local preparedText = " " .. link .. " x" .. quantity .. ": " ..
-                             formattedItemValue
+    -- always record full history for detail-mode rebuilds
+    private.lootHistory[#private.lootHistory + 1] = {
+        link = link, quantity = quantity,
+        perItemValue = marketValue, source = source,
+        disenchanted = disenchanted
+    }
 
-    -- Updated to support quantity
-    if tonumber(quantity) > 1 then
-        local qtyFormattedItemValue = marketValue * tonumber(quantity)
-        formattedItemValue = LA.Util.MoneyToString(qtyFormattedItemValue) or 0
-        preparedText = " " .. link .. " x" .. quantity .. ": " ..
-                           formattedItemValue
+    -- always update summary for summary-mode rebuilds
+    if not private.lootSummary[itemID] then
+        private.lootSummary[itemID] = {link = link, totalQuantity = 0, totalValue = 0}
     end
+    local summaryEntry = private.lootSummary[itemID]
+    summaryEntry.totalQuantity = summaryEntry.totalQuantity + tonumber(quantity)
+    summaryEntry.totalValue = summaryEntry.totalValue + (marketValue * tonumber(quantity))
 
-    -- append (de) at the end for disenchant value indicator if selected
-    if disenchanted then preparedText = preparedText .. " (de)" end
+    LA.Debug.Log("  " .. tostring(itemID) .. ": add entry to list " .. link)
 
-    -- append source
-    if source then
-        preparedText = preparedText .. " (|cFF2DA6ED" .. source .. "|r)"
-    end
-
-    -- item / link
-    local LABEL = AceGUI:Create("InteractiveLabel")
-    LABEL.frame:Hide()
-    local _lFont, _, _lFlags = GameFontHighlightSmall:GetFont()
-    LABEL:SetFont(_lFont, private.GetFontSize(), _lFlags) -- before SetText so UpdateImageAnchor uses correct height
-    LABEL:SetText(preparedText)
-    LABEL.label:SetJustifyH("LEFT")
-    LABEL:SetWidth(private.GetInnerWidth())
-    LABEL:SetCallback("OnEnter", function()
-        GameTooltip:SetOwner(private.MAIN_UI.frame, "ANCHOR_CURSOR") -- LootAppraiserReloaded.GUI is the AceGUI-Frame but we need the real frame
-        GameTooltip:SetHyperlink(link)
-        GameTooltip:Show()
-    end)
-    LABEL:SetCallback("OnLeave", function() GameTooltip:Hide() end)
-
-    LA.Debug.Log("  " .. tostring(itemID) .. ": add entry to list " ..
-                     preparedText)
-
-    local lootCollectedUI = private.MAIN_UI:GetUserData("data_lootCollected")
-    local lootCollectedLastEntryUI = private.MAIN_UI:GetUserData(
-                                         "data_lootCollected_lastEntry")
-    if lootCollectedLastEntryUI then
-        lootCollectedUI:AddChild(LABEL, lootCollectedLastEntryUI)
+    if LA.GetFromDb("display", "summaryMode") then
+        -- rebuild the entire list so the aggregated row is updated
+        UI.RebuildLootList()
     else
-        lootCollectedUI:AddChild(LABEL)
+        AddLootLabel(link, quantity, marketValue, source, disenchanted)
     end
-
-    -- rember the created entry to add the next entry before this -> reverse list with newest entry on top
-    private.MAIN_UI:SetUserData("data_lootCollected_lastEntry", LABEL)
 end
 
 function UI.ClearLootCollectedList()
     local lootCollectedUI = private.MAIN_UI:GetUserData("data_lootCollected")
     if lootCollectedUI then lootCollectedUI:ReleaseChildren() end
     private.MAIN_UI:SetUserData("data_lootCollected_lastEntry", nil)
+    private.lootHistory = {}
+    private.lootSummary = {}
 end
 
 function UI.ClearLastNoteworthyItemUI()

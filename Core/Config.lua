@@ -993,6 +993,26 @@ local options = {
                                     width = "full"
                                 },
 
+                                lootListHeader = {
+                                    order = 97,
+                                    type = "header",
+                                    name = "Loot List"
+                                },
+                                summaryMode = {
+                                    type = "toggle",
+                                    order = 98,
+                                    name = "Summary Mode",
+                                    desc = "Collapse repeated drops of the same item into a single row showing total quantity and total value. Toggle takes effect immediately.",
+                                    width = "double",
+                                    get = function(_)
+                                        return LA.GetFromDb("display", "summaryMode")
+                                    end,
+                                    set = function(_, value)
+                                        LA.db.profile.display.summaryMode = value
+                                        LA.UI.RebuildLootList()
+                                    end
+                                },
+
                                 groupLootHeader = {
                                     order = 100,
                                     type = "header",

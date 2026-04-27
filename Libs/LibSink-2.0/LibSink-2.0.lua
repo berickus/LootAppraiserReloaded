@@ -1,24 +1,10 @@
---[[
-Name: Sink-2.0
-Revision: $Rev: 124 $
-Author(s): Funkydude
-Description: Library that handles chat output.
-Dependencies: LibStub, SharedMedia-3.0 (optional)
-License: CC-BY-NC-SA 3.0
-]]
-
---[[
-Copyright (C) 2008-2015
-For the attribution bit of the license, as long as you distribute the library unmodified,
-no attribution is required.
-If you derive from the library or change it in any way, you are required to contact the author(s).
-]]
+--@curseforge-project-slug: libsink-2-0@
 
 -----------------------------------------------------------------------
 -- Sink-2.0
 
 local SINK20 = "LibSink-2.0"
-local SINK20_MINOR = 90104
+local SINK20_MINOR = 120000
 
 local sink = LibStub:NewLibrary(SINK20, SINK20_MINOR)
 if not sink then return end
@@ -39,16 +25,39 @@ sink.stickyAddons = sink.stickyAddons or {
 -- Upgrade complete
 
 local _G = _G
-local format, gsub, wipe, next, select = string.format, string.gsub, wipe, next, select
+local format, gsub, wipe, next, select = string.format, string.gsub, table.wipe, next, select
 local IsInRaid, IsInGroup, SendChatMessage = IsInRaid, IsInGroup, SendChatMessage
 
+-- Make sure FCT is loaded
+local EnableAddOn = C_AddOns.EnableAddOn
+local IsAddOnLoaded = C_AddOns.IsAddOnLoaded
+local LoadAddOn = C_AddOns.LoadAddOn
+EnableAddOn("Blizzard_CombatText")
+local loadFCT = nil
+if not IsAddOnLoaded("Blizzard_CombatText") then
+	loadFCT = function()
+		loadFCT = nil
+		LoadAddOn("Blizzard_CombatText")
+	end
+end
+
 local L = {}
-L.DEFAULT = _G.DEFAULT -- "Default"
-L.CHAT = _G.CHAT -- "Chat"
-L.NONE = _G.NONE -- "None"
-L.RW = _G.RAID_WARNING -- "Raid Warning"
-L.BLIZZARD = _G.FLOATING_COMBATTEXT_LABEL -- "Floating Combat Text"
-L.CHANNEL = _G.CHANNEL -- "Channel"
+L.DEFAULT = "Default"
+L.CHAT = "Chat"
+L.NONE = "None"
+L.RW = "Raid Warning"
+L.BLIZZARD = "Floating Combat Text"
+L.CHANNEL = "Channel"
+
+L.SAY = "Say"
+L.PARTY = "Party"
+L.INSTANCE_CHAT = "Instance"
+L.GUILD_CHAT = "Guild Chat"
+L.OFFICER_CHAT = "Officer Chat"
+L.YELL = "Yell"
+L.RAID = "Raid"
+L.RAID_WARNING = "Raid Warning"
+L.GROUP = "Group"
 
 L.DEFAULT_DESC = "Route output from this addon through the first available handler, preferring scrolling combat text addons if available."
 L.ROUTE = "Route output from this addon through %s."
@@ -63,9 +72,23 @@ L.NONE_DESC = "Hide all messages from this addon."
 L.NOTINCHANNEL = "LibSink: %s (Sending to channel '%s' failed, you're not in it)"
 
 do
-	-- These localization strings are translated on WoWAce: http://www.wowace.com/addons/libsink-2-0/localization/
 	local l = GetLocale()
 	if l == "koKR" then
+		L.DEFAULT = "기본"
+		L.CHAT = "대화"
+		L.NONE = "없음"
+		L.RW = "공격대 경보"
+		L.BLIZZARD = "전투 상황 알림"
+		L.CHANNEL = "채널"
+		L.SAY = "일반 대화"
+		L.PARTY = "파티"
+		L.INSTANCE_CHAT = "인스턴스"
+		L.GUILD_CHAT = "길드 대화"
+		L.OFFICER_CHAT = "길드관리자 대화"
+		L.YELL = "외침"
+		L.RAID = "공격대"
+		L.RAID_WARNING = "공격대 경보"
+		L.GROUP = "파티"
 		L["DEFAULT_DESC"] = "처음으로 사용 가능한 트레이너를 통해 이 애드온으로부터 출력을 보냅니다." -- Needs review
 		L["NONE_DESC"] = "이 애드온의 모든 메시지를 숨김니다." -- Needs review
 		L["NOTINCHANNEL"] = "LibSink: %s (%s 채널로 전송 실패)" -- Needs review
@@ -78,6 +101,21 @@ do
 		L["STICKY_DESC"] = "달라붙는 것처럼 보일 이 애드온의 메시지를 설정합니다." -- Needs review
 		L["UIERROR"] = "블리자드 오류 창" -- Needs review
 	elseif l == "frFR" then
+		L.DEFAULT = "Défaut"
+		L.CHAT = "Discussion"
+		L.NONE = "Aucun"
+		L.RW = "Avertissement Raid"
+		L.BLIZZARD = "Texte de combat flottant"
+		L.CHANNEL = "Canal"
+		L.SAY = "Dire"
+		L.PARTY = "Groupe"
+		L.INSTANCE_CHAT = "Instance"
+		L.GUILD_CHAT = "Guilde"
+		L.OFFICER_CHAT = "Officier"
+		L.YELL = "Crier"
+		L.RAID = "Raid"
+		L.RAID_WARNING = "Avertissement Raid"
+		L.GROUP = "Groupe"
 		L["DEFAULT_DESC"] = "Dirige la sortie de cet addon vers le premier gestionnaire disponible, de préférence les addons de texte de combat flottant si disponibles." -- Needs review
 		L["NONE_DESC"] = "Cache tous les messages de cet addon." -- Needs review
 		L["NOTINCHANNEL"] = "LibSink : %s (l'envoi vers le canal '%s' a échoué, car vous n'êtes pas dessus)" -- Needs review
@@ -94,6 +132,21 @@ do
 		Disponible uniquement pour certaines sorties.]=] -- Needs review
 		L["UIERROR"] = "Cadre des erreurs de Blizzard" -- Needs review
 	elseif l == "deDE" then
+		L.DEFAULT = "Standard"
+		L.CHAT = "Chat"
+		L.NONE = "Nichts"
+		L.RW = "Schlachtzugswarnung"
+		L.BLIZZARD = "Schwebender Kampftext"
+		L.CHANNEL = "Channel"
+		L.SAY = "Sagen"
+		L.PARTY = "Gruppe"
+		L.INSTANCE_CHAT = "Instanz"
+		L.GUILD_CHAT = "Gildenchat"
+		L.OFFICER_CHAT = "Offizierchat"
+		L.YELL = "Schreien"
+		L.RAID = "Schlachtzug"
+		L.RAID_WARNING = "Schlachtzugswarnung"
+		L.GROUP = "Gruppe"
 		L["DEFAULT_DESC"] = "Die Ausgaben dieses Addons werden durch den ersten verfügbaren Handler geleitet, es werden Schwebender-Kampftext-Addons bevorzugt, wenn diese vorhanden sind."
 		L["NONE_DESC"] = "Alle Meldungen dieses Addons verstecken."
 		L["NOTINCHANNEL"] = "LibSink : %s (Senden auf Channel \"%s\" gescheitert, da du nicht in ihm bist)"
@@ -101,7 +154,7 @@ do
 		L["OUTPUT_DESC"] = "Wohin die Ausgaben dieses Addons geleitet werden sollen."
 		L["ROUTE"] = "Die Ausgaben dieses Addons werden durch %s geleitet."
 		L["SCROLL"] = "Unterabschnitt"
-		L["SCROLL_DESC"] = [=[Stelle den Unterabschnitt ein, in dem die Nachrichten erscheinen sollen. 
+		L["SCROLL_DESC"] = [=[Stelle den Unterabschnitt ein, in dem die Nachrichten erscheinen sollen.
 
 		Dies ist nur für manche Ausgaben verfügbar.]=]
 		L["STICKY"] = "Fixiert"
@@ -110,6 +163,21 @@ do
 		Dies ist nur für manche Ausgaben verfügbar.]=]
 		L["UIERROR"] = "Blizzards Fehlerfenster"
 	elseif l == "zhCN" then
+		L.DEFAULT = "默认"
+		L.CHAT = "聊天"
+		L.NONE = "无"
+		L.RW = "团队通知"
+		L.BLIZZARD = "浮动战斗信息"
+		L.CHANNEL = "频道"
+		L.SAY = "说"
+		L.PARTY = "小队"
+		L.INSTANCE_CHAT = "副本"
+		L.GUILD_CHAT = "公会聊天"
+		L.OFFICER_CHAT = "官员聊天"
+		L.YELL = "大喊"
+		L.RAID = "团队"
+		L.RAID_WARNING = "团队通知"
+		L.GROUP = "小队"
 		L["DEFAULT_DESC"] = "从这个插件路由输出到第一个可用的处理程序，倾向于可用的滚动战斗文本插件。"
 		L["NONE_DESC"] = "隐藏此插件全部消息。"
 		L["NOTINCHANNEL"] = "LibSink：%s（发送到频道“%s”失败，不在此频道）"
@@ -126,6 +194,21 @@ do
 		只在一些输出可用。]=]
 		L["UIERROR"] = "暴雪错误框体"
 	elseif l == "zhTW" then
+		L.DEFAULT = "預設值"
+		L.CHAT = "對話"
+		L.NONE = "無"
+		L.RW = "團隊警告"
+		L.BLIZZARD = "浮動戰鬥文字"
+		L.CHANNEL = "頻道"
+		L.SAY = "說"
+		L.PARTY = "隊伍"
+		L.INSTANCE_CHAT = "副本"
+		L.GUILD_CHAT = "公會對話"
+		L.OFFICER_CHAT = "幹部對話"
+		L.YELL = "大喊"
+		L.RAID = "團隊"
+		L.RAID_WARNING = "團隊警告"
+		L.GROUP = "小隊"
 		L["DEFAULT_DESC"] = "從這個插件路由輸出到第一個可用的處理程式，傾向於可用的滾動戰鬥文本插件。"
 		L["NONE_DESC"] = "隱藏此插件全部訊息。"
 		L["NOTINCHANNEL"] = "LibSink：%s（發送到頻道“%s”失敗，不在此頻道）"
@@ -142,6 +225,21 @@ do
 		只在一些輸出可用。 ]=]
 		L["UIERROR"] = "暴雪錯誤框體"
 	elseif l == "ruRU" then
+		L.DEFAULT = "По умолчанию"
+		L.CHAT = "Каналы"
+		L.NONE = "Нет"
+		L.RW = "Объявление рейду"
+		L.BLIZZARD = "Текст боя"
+		L.CHANNEL = "Канал"
+		L.SAY = "Речь"
+		L.PARTY = "Группа"
+		L.INSTANCE_CHAT = "Подземелье"
+		L.GUILD_CHAT = "Канал гильдии"
+		L.OFFICER_CHAT = "Канал офицеров"
+		L.YELL = "Крик"
+		L.RAID = "Рейд"
+		L.RAID_WARNING = "Объявление рейду"
+		L.GROUP = "Группа"
 		L["DEFAULT_DESC"] = "Направлять вывод из этого аддона через первый доступный обработчик, предпочитая аддоны прокрутки журнала боя если они доступны."
 		L["NONE_DESC"] = "Скрыть все сообщения этого аддона"
 		L["NOTINCHANNEL"] = "LibSink: %s (Отправка в канал '%s' неудачна, вы не в нем)"
@@ -158,6 +256,21 @@ do
 		Доступно только для некоторых выводов.]=]
 		L["UIERROR"] = "Фрейм ошибок Blizzard."
 	elseif l == "esES" or l == "esMX" then
+		L.DEFAULT = "Predeterminado"
+		L.CHAT = "Chat"
+		L.NONE = "Ninguno"
+		L.RW = "Aviso de la banda"
+		L.BLIZZARD = "Texto flotante de combate"
+		L.CHANNEL = "Canal"
+		L.SAY = "Hablar"
+		L.PARTY = "Grupo"
+		L.INSTANCE_CHAT = "Estancia"
+		L.GUILD_CHAT = "Chat de hermandad"
+		L.OFFICER_CHAT = "Chat de oficiales"
+		L.YELL = "Gritar"
+		L.RAID = "Banda"
+		L.RAID_WARNING = "Aviso de la banda"
+		L.GROUP = "Grupo"
 		L["DEFAULT_DESC"] = "Ruta de salida de este addon mediante el primer controlador disponible, prefiriendo el desplazamiento de texto de combate si está disponible." -- Needs review
 		L["NONE_DESC"] = "Oculta todos los mensajes de este addon." -- Needs review
 		L["NOTINCHANNEL"] = "LibSink: %s (Falló al enviar al canal '%s', no estás en el)" -- Needs review
@@ -174,8 +287,48 @@ do
 		Disponible sólo para algunas salidas.]=] -- Needs review
 		L["UIERROR"] = "Marco de Errores de Blizzard" -- Needs review
 	elseif l == "ptBR" then
-		
+		L.DEFAULT = "Padrão"
+		L.CHAT = "Bate-papo"
+		L.NONE = "Nenhum"
+		L.RW = "Aviso do raide"
+		L.BLIZZARD = "Texto de combate"
+		L.CHANNEL = "Canal"
+		L.SAY = "Dizer"
+		L.PARTY = "Grupo"
+		L.INSTANCE_CHAT = "Instância"
+		L.GUILD_CHAT = "Bate-papo da guilda"
+		L.OFFICER_CHAT = "Bate-papo de oficiais"
+		L.YELL = "Gritar"
+		L.RAID = "Raide"
+		L.RAID_WARNING = "Aviso do raide"
+		L.GROUP = "Grupo"
+		--L.DEFAULT_DESC = "Route output from this addon through the first available handler, preferring scrolling combat text addons if available."
+		--L.ROUTE = "Route output from this addon through %s."
+		--L.UIERROR = "Blizzard Error Frame"
+		--L.OUTPUT = "Output"
+		--L.OUTPUT_DESC = "Where to route the output from this addon."
+		--L.SCROLL = "Sub section"
+		--L.SCROLL_DESC = "Set the sub section where messages should appear.\n\nOnly available for some outputs."
+		--L.STICKY = "Sticky"
+		--L.STICKY_DESC = "Set messages from this addon to appear as sticky.\n\nOnly available for some outputs."
+		--L.NONE_DESC = "Hide all messages from this addon."
+		--L.NOTINCHANNEL = "LibSink: %s (Sending to channel '%s' failed, you're not in it)"
 	elseif l == "itIT" then
+		L.DEFAULT = "Predefinito"
+		L.CHAT = "Chat"
+		L.NONE = "Nessuno"
+		L.RW = "Avviso incursione"
+		L.BLIZZARD = "Testo di combattimento"
+		L.CHANNEL = "Canale"
+		L.SAY = "Parla"
+		L.PARTY = "Gruppo"
+		L.INSTANCE_CHAT = "Istanza"
+		L.GUILD_CHAT = "Chat di gilda"
+		L.OFFICER_CHAT = "Chat degli ufficiali"
+		L.YELL = "Urla"
+		L.RAID = "Incursione"
+		L.RAID_WARNING = "Avviso incursione"
+		L.GROUP = "Gruppo"
 		L["DEFAULT_DESC"] = "Indirizza l'uscita da questo addon attraverso il primo metodo di uscita disponibile, preferibilmente un addon visivo a schermo se disponibile."
 		L["NONE_DESC"] = "Nasconti tutti i messaggi per questo addon."
 		L["NOTINCHANNEL"] = "LibSink: %s (Invio al canale '%s' non riuscito, non sei dentro)"
@@ -218,27 +371,25 @@ end
 
 local function blizzard(addon, text, r, g, b, font, size, outline, sticky, _, icon)
 	if icon then text = "\124T"..icon..":15:15:0:0:64:64:4:60:4:60\124t "..text end
-	if SHOW_COMBAT_TEXT == "1" then
-		local s = sink.storageForAddon[addon] and sink.storageForAddon[addon].sink20Sticky or sticky
-		if not CombatText_AddMessage then
-			UIParentLoadAddOn("Blizzard_CombatText")
-		end
+	local s = sink.storageForAddon[addon] and sink.storageForAddon[addon].sink20Sticky or sticky
+	if loadFCT then loadFCT() end
+	if CombatText_AddMessage then
 		CombatText_AddMessage(text, CombatText_StandardScroll, r, g, b, s and "crit" or nil, false)
 	else
-		UIErrorsFrame:AddMessage(text, r, g, b, 1.0)
+		CombatText:AddMessage(text, CombatTextUtil.StandardScroll, r, g, b, s and "crit" or nil, false)
 	end
 end
 
 sink.channelMapping = sink.channelMapping or {
-	[_G.SAY] = "SAY",
-	[_G.PARTY] = "PARTY",
-	[_G.INSTANCE_CHAT] = "INSTANCE_CHAT",
-	[_G.GUILD_CHAT] = "GUILD",
-	[_G.OFFICER_CHAT] = "OFFICER",
-	[_G.YELL] = "YELL",
-	[_G.RAID] = "RAID",
-	[_G.RAID_WARNING] = "RAID_WARNING",
-	[_G.GROUP] = "GROUP",
+	[L.SAY] = "SAY",
+	[L.PARTY] = "PARTY",
+	[L.INSTANCE_CHAT] = "INSTANCE_CHAT",
+	[L.GUILD_CHAT] = "GUILD",
+	[L.OFFICER_CHAT] = "OFFICER",
+	[L.YELL] = "YELL",
+	[L.RAID] = "RAID",
+	[L.RAID_WARNING] = "RAID_WARNING",
+	[L.GROUP] = "GROUP",
 }
 sink.channelMappingIds = sink.channelMappingIds or {}
 sink.frame = sink.frame or CreateFrame("Frame")
@@ -293,12 +444,12 @@ local function channel(addon, text)
 end
 
 -- |TTexturePath:size1:size2:xoffset:yoffset:dimx:dimy:coordx1:coordx2:coordy1:coordy2:red:green:blue|t
-local function chat(addon, text, r, g, b, _, _, _, _, _, icon)
+local function chat(_, text, r, g, b, _, _, _, _, _, icon)
 	if icon then text = "\124T"..icon..":15:15:0:0:64:64:4:60:4:60\124t"..text end
 	DEFAULT_CHAT_FRAME:AddMessage(text, r, g, b)
 end
 
-local function uierror(addon, text, r, g, b, _, _, _, _, _, icon)
+local function uierror(_, text, r, g, b, _, _, _, _, _, icon)
 	if icon then text = "\124T"..icon..":15:15:0:0:64:64:4:60:4:60\124t "..text end
 	UIErrorsFrame:AddMessage(text, r, g, b, 1.0)
 end
@@ -306,7 +457,7 @@ end
 local rw
 do
 	local white = {r = 1, g = 1, b = 1}
-	function rw(addon, text, r, g, b, _, _, _, _, _, icon)
+	function rw(_, text, r, g, b, _, _, _, _, _, icon)
 		if r or g or b then
 			text = format("\124cff%02x%02x%02x%s\124r", (r or 0) * 255, (g or 0) * 255, (b or 0) * 255, text)
 		end
@@ -335,17 +486,15 @@ local function getPrioritizedSink()
 			return sink.handlers[currentHandler]
 		end
 	end
-	for i, v in next, handlerPriority do
-		local check = customHandlersEnabled[v]
+	for i = 1, #handlerPriority do
+		local handler = handlerPriority[i]
+		local check = customHandlersEnabled[handler]
 		if check and check() then
-			currentHandler = v
-			return sink.handlers[v]
+			currentHandler = handler
+			return sink.handlers[handler]
 		end
 	end
-	if SHOW_COMBAT_TEXT and tostring(SHOW_COMBAT_TEXT) ~= "0" then
-		return blizzard
-	end
-	return chat
+	return blizzard
 end
 
 local function pour(addon, text, r, g, b, ...)
@@ -387,9 +536,6 @@ do
 	local function shouldDisableMSBT()
 		return not _G.MikSBT
 	end
-	local function shouldDisableFCT()
-		return not SHOW_COMBAT_TEXT or tostring(SHOW_COMBAT_TEXT) == "0"
-	end
 
 	local sctFrames = {"Incoming", "Outgoing", "Messages"}
 	local msbtFrames = nil
@@ -398,7 +544,7 @@ do
 		if addon == "MikSBT" then
 			if not msbtFrames then
 				msbtFrames = {}
-				for key, name in MikSBT.IterateScrollAreas() do
+				for _, name in MikSBT.IterateScrollAreas() do
 					msbtFrames[#msbtFrames+1] = name
 				end
 			end
@@ -422,7 +568,7 @@ do
 		Default = {L.DEFAULT, L.DEFAULT_DESC},
 		SCT = {"Scrolling Combat Text (SCT)", nil, shouldDisableSCT},
 		MikSBT = {"MikSBT", nil, shouldDisableMSBT},
-		Blizzard = {L.BLIZZARD, nil, shouldDisableFCT},
+		Blizzard = {L.BLIZZARD},
 		RaidWarning = {L.RW},
 		ChatFrame = {L.CHAT},
 		Channel = {L.CHANNEL},
@@ -656,7 +802,7 @@ do
 		end
 		sink.stickyAddons[shortName] = hasSticky and true or nil
 
-		for k, v in next, sinkOptionGenerators do
+		for _, v in next, sinkOptionGenerators do
 			v(shortName, sinks[shortName])
 		end
 	end

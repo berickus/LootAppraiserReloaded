@@ -1,10 +1,10 @@
-## Interface: 90001
+## Interface: 100005
 ## Title: Lib: Toast-1.0
 ## Notes: Provides one or many informational windows with optional interactive widgets.
 ## Author: Torhal
-## Version: 9.0.1.1
+## Version: @project-version@
 ## LoadOnDemand: 1
-## X-Date: 2020-10-26T4:36:57Z
+## X-Date: @project-date-iso@
 ## X-Category: Libraries
 ## X-License: All Rights Reserved
 

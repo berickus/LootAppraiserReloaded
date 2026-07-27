@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.4.2
+### Changed
+ - Updated anniversary interface version
+
 ## v3.4.1
 ### Changed
  - Updated interface version

@@ -1,4 +1,4 @@
-## Interface: 120007, 50503, 40402, 38000, 30405, 20506, 11508
+## Interface: 120100, 50504, 40402, 38002, 30405, 20506, 11509
 ## Title: LootAppraiser Reloaded
 ## Notes: An addon which keeps track of looted items and relative AH value.
 ## Author: Berickus

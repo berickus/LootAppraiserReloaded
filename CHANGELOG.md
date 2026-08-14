@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.4.3
+### Changed
+ - Fixed silent auto start issue
+ - Updated interface versions
+
 ## v3.4.2
 ### Changed
  - Updated anniversary interface version

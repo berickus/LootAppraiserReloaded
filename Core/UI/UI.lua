@@ -379,7 +379,9 @@ local updateTimer = 0
 function UI.ShowMainWindow(showMainUI)
     LA.Debug.Log("ShowMainWindow")
 
-    if private.MAIN_UI and showMainUI then
+    if private.MAIN_UI then
+        if not showMainUI then return end
+
         private.MAIN_UI:Show()
 
         if LA.GetFromDb("display", "enableLootAppraiserReloadedLite") then
@@ -720,15 +722,15 @@ function UI.PrepareDataContainer(parent)
     grp:SetFullWidth(true)
     dataContainer:AddChild(grp)
 
-    -- add zone...
+    -- add zone... (map info can be unavailable right after login/loading screen)
     local currentMapID = GetBestMapForUnit("player")
-    local zoneInfo = GetMapInfo(currentMapID)
+    local zoneInfo = currentMapID and GetMapInfo(currentMapID)
     zoneInfo = zoneInfo and zoneInfo.name
 
     local valueZone = AceGUI:Create("LALabel")
     valueZone:SetWordWrap(false)
     valueZone:SetFont(font, fontSize, flags)
-    valueZone:SetText(zoneInfo)
+    valueZone:SetText(zoneInfo or "")
     valueZone:SetWidth(labelWidth)
     valueZone:SetJustifyH("LEFT")
     grp:AddChild(valueZone)
@@ -868,9 +870,18 @@ end
 function UI.RefreshUIs()
     -- LA.Debug.Log("refreshUIs")
 
+    if not private.MAIN_UI then return end
+
     -- session duration
     local sessionDurationUI =
         private.MAIN_UI:GetUserData("data_sessionDuration")
+    if not sessionDurationUI then
+        -- data container is empty (frame was built before a session existed
+        -- or the build aborted) -> rebuild it now and retry once
+        LA.UI.PrepareDataContainer()
+        sessionDurationUI = private.MAIN_UI:GetUserData("data_sessionDuration")
+        if not sessionDurationUI then return end
+    end
     if LA.Session.IsRunning() then
         local offset = LA.Session.GetPauseStart() or time()
         local delta = offset - LA.Session.GetCurrentSession("start") -

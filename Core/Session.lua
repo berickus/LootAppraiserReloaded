@@ -69,9 +69,10 @@ function Session.Start(showMainUI)
     if not Session.IsRunning() then
         LA:Print("Start Session")
 
-        local zoneInfo = GetMapInfo(GetBestMapForUnit("player"))
+        local mapID = GetBestMapForUnit("player")
+        local zoneInfo = mapID and GetMapInfo(mapID)
         zoneInfo = zoneInfo and zoneInfo.name
-        LA.Debug.Log("  mapID=%s (%s)", GetBestMapForUnit("player"), zoneInfo)
+        LA.Debug.Log("  mapID=%s (%s)", tostring(mapID), tostring(zoneInfo))
 
         private.sessionIsRunning = true
         private.PrepareNewSession()
@@ -89,6 +90,7 @@ function Session.GetSessionPause() return private.sessionPause end
 
 function Session.GetCurrentSession(key)
     if not key then return private.currentSession end
+    if not private.currentSession then return nil end
     return private.currentSession[key]
 end
 

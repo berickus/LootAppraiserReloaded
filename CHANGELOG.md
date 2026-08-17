@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.4.4
+### Changed
+ - Fixed silent auto start issue
+
 ## v3.4.3
 ### Changed
  - Fixed silent auto start issue

@@ -46,3 +46,7 @@ luac.out
 .DS_Store
 
 CLAUDE.md
+# Libraries fetched by the packager (.pkgmeta externals) -- see ../sync-libs.sh
+Libs/**
+!Libs/LibParse/
+!Libs/LibParse/**

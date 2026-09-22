@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.5.0
+### Changed
+ - Updated Ace3 libraries (AceGUI checkbox desaturation and slider text fixes)
+ - Updated LibDBIcon-1.0 to r56, LibSharedMedia-3.0 to 12.0.0 and LibToast-1.0 to r16
+ - Updated AceGUI-3.0-SharedMediaWidgets to 9004 (BackdropTemplate fixes)
+ - Embedded libraries are now fetched at build time via .pkgmeta externals
+
+### Removed
+ - Removed unused duplicate libraries bundled inside AceGUI-3.0-SharedMediaWidgets
+
 ## v3.4.4
 ### Changed
  - Fixed silent auto start issue

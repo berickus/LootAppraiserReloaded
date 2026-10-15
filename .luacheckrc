@@ -77,6 +77,8 @@ read_globals = {
 	'C_Item',
 	'C_ChatInfo',
 	'C_Container',
+	'C_CurrencyInfo',
+	'C_CombatLog',
 	'C_WowTokenPublic',
 	'C_Timer',
 	'TUJTooltip',

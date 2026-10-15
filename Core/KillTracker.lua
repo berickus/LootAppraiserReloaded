@@ -16,7 +16,7 @@ local pairs, tostring, tonumber, select, strsplit, bit, pcall, type = pairs,
                                                                       type
 
 -- WoW APIs
-local CombatLogGetCurrentEventInfo = CombatLogGetCurrentEventInfo
+local CombatLogGetCurrentEventInfo = C_CombatLog and C_CombatLog.GetCurrentEventInfo or CombatLogGetCurrentEventInfo
 local GetLootSourceInfo = GetLootSourceInfo
 local GetNumLootItems = GetNumLootItems
 local UnitName = UnitName

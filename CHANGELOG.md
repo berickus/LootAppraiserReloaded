@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.5.1
+### Changed
+ - Updated interface version to 120105
+
+### Fixed
+ - Use `C_Item.GetItemInfo`, `C_Item.GetItemCount` and `C_Item.GetItemQualityColor` instead of the removed globals
+ - Use `C_CurrencyInfo.GetCoinTextureString` instead of the removed global (fixes errors when selling gray items)
+ - Use `C_ChatInfo.SendChatMessage` and `C_CombatLog.GetCurrentEventInfo` instead of the deprecated globals
+
 ## v3.5.0
 ### Changed
  - Updated Ace3 libraries (AceGUI checkbox desaturation and slider text fixes)

@@ -8,7 +8,7 @@ local OEMarketInfo = OEMarketInfo
 local BlizzardVendorSell = 1
 
 -- Wow APIs
-local GetItemInfo, StaticPopupDialogs, StaticPopup_Show = GetItemInfo,
+local GetItemInfo, StaticPopupDialogs, StaticPopup_Show = C_Item and C_Item.GetItemInfo or GetItemInfo,
                                                           StaticPopupDialogs,
                                                           StaticPopup_Show
 local OKAY = OKAY

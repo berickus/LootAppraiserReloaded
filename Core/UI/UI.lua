@@ -27,14 +27,18 @@ local AceGUI = LibStub("AceGUI-3.0")
 local GetItemQualityColor, CreateFrame, UIFrameFadeOut, UIFrameFadeIn,
       IsShiftKeyDown, PlaySound, GameTooltip, GetBestMapForUnit, GetMapInfo,
       ResetInstances, IsInGroup, SendChatMessage, GetMerchantNumItems,
-      DeleteCursorItem, SecondsToTime = GetItemQualityColor, CreateFrame,
+      DeleteCursorItem, SecondsToTime = C_Item and C_Item.GetItemQualityColor or GetItemQualityColor, CreateFrame,
                                         UIFrameFadeOut, UIFrameFadeIn,
                                         IsShiftKeyDown, PlaySound, GameTooltip,
                                         C_Map.GetBestMapForUnit,
                                         C_Map.GetMapInfo, ResetInstances,
-                                        IsInGroup, SendChatMessage,
+                                        IsInGroup,
+                                        C_ChatInfo and C_ChatInfo.SendChatMessage or SendChatMessage,
                                         GetMerchantNumItems,
                                         DeleteCursorItem, SecondsToTime
+local GetItemInfo = C_Item and C_Item.GetItemInfo or GetItemInfo
+local GetItemCount = C_Item and C_Item.GetItemCount or GetItemCount
+local GetCoinTextureString = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString or GetCoinTextureString
 local _G = _G
 
 -- lua api

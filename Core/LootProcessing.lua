@@ -12,7 +12,7 @@ local LibParse = LibStub:GetLibrary("LibParse")
 
 -- Wow APIs
 local GetItemInfo, IsInGroup, UnitGUID, GetBestMapForUnit,
-      PlaySoundFile, SendAddonMessage = GetItemInfo, IsInGroup,
+      PlaySoundFile, SendAddonMessage = C_Item and C_Item.GetItemInfo or GetItemInfo, IsInGroup,
                                         UnitGUID,
                                         C_Map.GetBestMapForUnit,
                                         PlaySoundFile,

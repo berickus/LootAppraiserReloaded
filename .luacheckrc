@@ -55,6 +55,8 @@ read_globals = {
 
 	-- WoW API
 	'GetBuildInfo',
+	'WOW_PROJECT_ID',
+	'WOW_PROJECT_CAMELOT',
 	'GetItemInfo',
 	'GetItemCount',
 	'GetCoinTextureString',

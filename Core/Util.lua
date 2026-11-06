@@ -6,8 +6,12 @@ LA.Util = Util
 local tocVersion = select(4, GetBuildInfo()) -- Returns TOC version (e.g., 110205)
 Util.TOCVersion = tocVersion
 
+-- WoW Forever (project "Camelot") reports a 1.x TOC (e.g. 16001) but runs the
+-- modern Mainline API and restrictions, so it must not be treated as Classic.
+Util.IsForever = (WOW_PROJECT_CAMELOT ~= nil and WOW_PROJECT_ID == WOW_PROJECT_CAMELOT)
+
 -- Classic Versions (check first - more specific)
-Util.IsClassicEra = (tocVersion < 20000) -- Classic Era (1.x)
+Util.IsClassicEra = (tocVersion < 20000 and not Util.IsForever) -- Classic Era (1.x)
 Util.IsTBCClassic = (tocVersion >= 20000 and tocVersion < 30000) -- TBC Classic (2.x) - legacy
 Util.IsWrathClassic = (tocVersion >= 30000 and tocVersion < 40000) -- Wrath Classic (3.x) - legacy
 Util.IsCataClassic = (tocVersion >= 40000 and tocVersion < 50000) -- Cata Classic (4.x) - legacy
@@ -20,7 +24,7 @@ Util.IsRetail = (tocVersion >= 100000) -- Dragonflight+ (10.x+)
 Util.IsTWW = (tocVersion >= 110200 and tocVersion < 120000) -- The War Within (11.x)
 Util.IsMidnight = (tocVersion >= 120000)
 
-Util.IsModern = Util.IsRetail or Util.IsTWW or Util.IsMidnight
+Util.IsModern = Util.IsRetail or Util.IsTWW or Util.IsMidnight or Util.IsForever
 
 -- lua api
 local abs, floor, string, pairs, table, tonumber = abs, floor, string, pairs,

@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.5.2
+### Changed
+ - Added WoW Forever support (interface version 16001)
+
+### Fixed
+ - WoW Forever is no longer detected as Classic Era: kill tracking, crafting results, WoW Token percentage and the addon compartment now use the modern code path
+
 ## v3.5.1
 ### Changed
  - Updated interface version to 120105

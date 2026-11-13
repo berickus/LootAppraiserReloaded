@@ -416,12 +416,12 @@ function UI.ShowMainWindow(showMainUI)
     private.MAIN_UI:EnableResize(true)
     private.MAIN_UI.frame:SetClampedToScreen(true)
 
-    if LA.Util.IsModern then
+    if LA.Util.HasWoWToken then
         -- Request the initial market price update
         C_WowTokenPublic.UpdateMarketPrice()
         C_Timer.After(2, function()
             LA.UI.WOW_TOKEN = C_WowTokenPublic.GetCurrentMarketPrice()
-            LA.Debug.Log("WoWToken price loaded: " .. LA.UI.WOW_TOKEN)
+            LA.Debug.Log("WoWToken price loaded: " .. tostring(LA.UI.WOW_TOKEN))
         end)
     end
 
@@ -452,7 +452,7 @@ function UI.ShowMainWindow(showMainUI)
             end
         end
 
-        if LA.Util.IsModern then
+        if LA.Util.HasWoWToken then
             updateTimer = updateTimer + elapsed
             if updateTimer >= 900 then -- ⏳ Updating every 15 min
                 C_WowTokenPublic.UpdateMarketPrice()
@@ -812,7 +812,7 @@ function UI.PrepareDataContainer(parent)
                                                               innerWidth)
     parent:SetUserData("data_noteworthyItemCounter", noteworthyItemCounterUI)
 
-    if LA.Util.IsModern then
+    if LA.Util.HasWoWToken then
         -- ...WoW token percentage
         local wowTokenPercentageUI = private.DefineRowForFrame(dataContainer,
                                                                "showWoWTokenPercentage",
@@ -1013,7 +1013,7 @@ function UI.RefreshUIs()
                                             "noteworthyItemCounter") or 0)
     end
 
-    if LA.Util.IsModern then
+    if LA.Util.HasWoWToken then
         -- WoW token percentage
         local wowTokenPercentageUI = private.MAIN_UI:GetUserData(
                                          "data_wowTokenPercentage")

@@ -26,6 +26,9 @@ Util.IsMidnight = (tocVersion >= 120000)
 
 Util.IsModern = Util.IsRetail or Util.IsTWW or Util.IsMidnight or Util.IsForever
 
+-- WoW Forever exposes C_WowTokenPublic but has no token market (price is nil).
+Util.HasWoWToken = Util.IsModern and not Util.IsForever
+
 -- lua api
 local abs, floor, string, pairs, table, tonumber = abs, floor, string, pairs,
                                                    table, tonumber

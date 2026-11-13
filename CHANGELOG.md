@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## v3.5.3
+### Fixed
+ - WoW Forever: fixed a Lua error (`attempt to concatenate field 'WOW_TOKEN'`) when opening the main window, as Forever has no WoW Token market. The WoW Token percentage row and option are now hidden on Forever
+
 ## v3.5.2
 ### Changed
  - Added WoW Forever support (interface version 16001)

@@ -967,7 +967,8 @@ local options = {
                                     order = 74,
                                     name = "Show WoW Token price percentage (retail only)",
                                     desc = "Show the percentage of a WoW Token farmed.",
-                                    width = "double"
+                                    width = "double",
+                                    hidden = not LA.Util.HasWoWToken
                                 },
                                 resetInstanzeHeader = {
                                     order = 75,
